@@ -153,7 +153,7 @@ PATCH   & Нет & Нет & Да  & Частичное обновление ре
 
 \textbf{Входные данные:}
 \begin{itemize}
-    \item Запрос: \texttt{POST /api/orders}, тело: \texttt{\{``description'': ``Ноутбук'', ``amount'': 89999.99\}}
+    \item Запрос: \texttt{POST /api/orders}, тело: \texttt{\{description: "Ноутбук", amount: 89999.99\}}
     \item Заголовок: \texttt{Idempotency-Key: abc-123}
     \item Начальное состояние: таблица \texttt{orders} пуста, \texttt{KeyStore} пуст
 \end{itemize}
@@ -166,7 +166,7 @@ PATCH   & Нет & Нет & Да  & Частичное обновление ре
     \item $KeyStore.\text{register}(\text{``abc-123''}, \text{POST}, \text{``/api/orders''})$ (строка 17)
     \item Выполняем \texttt{ProcessRequest}: INSERT INTO orders $\Rightarrow$ заказ создан (id=\texttt{e7f1...}) (строка 18)
     \item $KeyStore.\text{saveResponse}(\text{``abc-123''}, 201, \text{``\{id: e7f1...\}''})$ (строка 19)
-    \item Ответ: \texttt{201 Created}, тело: \texttt{\{id: ``e7f1...'', description: ``Ноутбук''\}}
+    \item Ответ: \texttt{201 Created}, тело: \texttt{\{id: "e7f1...", description: "Ноутбук"\}}
 \end{enumerate}
 
 \textbf{Повторный запрос (retry после таймаута):}

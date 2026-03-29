@@ -1,65 +1,518 @@
 \appendix
-\section*{Приложение А. Ключевые фрагменты кода}
-\addcontentsline{toc}{section}{Приложение А. Ключевые фрагменты кода}
+\section*{Приложение А. Листинги исходного кода}
+\addcontentsline{toc}{section}{Приложение А. Листинги исходного кода}
 
-\subsection*{А.1. IdempotencyFilter (фильтр проверки идемпотентности)}
+% ============================================================
+% Инфраструктура и конфигурация
+% ============================================================
 
+\subsection*{А.1. docker-compose.yml}
+\begin{lstlisting}[caption={docker-compose.yml --- PostgreSQL для разработки}, language={}]
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: idempotency-postgres
+    environment:
+      POSTGRES_DB: idempotency_demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d idempotency_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+\end{lstlisting}
+
+\subsection*{А.2. application.yml}
+\begin{lstlisting}[caption={application.yml --- основная конфигурация}, language={}]
+spring:
+  application:
+    name: idempotency-demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/idempotency_demo
+    username: demo
+    password: demo
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    rest:
+      base-path: /api
+
+app:
+  idempotency:
+    enabled: true
+    key-ttl-hours: 24
+
+server:
+  port: 8080
+\end{lstlisting}
+
+\subsection*{А.3. application-non-idempotent.yml}
+\begin{lstlisting}[caption={application-non-idempotent.yml --- профиль без идемпотентности}, language={}]
+app:
+  idempotency:
+    enabled: false
+
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration-non-idempotent
+  jpa:
+    properties:
+      hibernate:
+        '[jakarta.persistence.lock.timeout]': 0
+\end{lstlisting}
+
+% ============================================================
+% Миграции Flyway
+% ============================================================
+
+\subsection*{А.4. V1\_\_init\_schema.sql}
+\begin{lstlisting}[caption={V1\_\_init\_schema.sql --- основная схема БД}, language=SQL]
+-- Таблица заказов (домен OrderController)
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description VARCHAR(255) NOT NULL,
+    amount DECIMAL(19, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_order_description_amount UNIQUE (description, amount)
+);
+
+-- Таблица платежей (домен PaymentRouter)
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id),
+    amount DECIMAL(19, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Таблица товаров (домен ProductRepository)
+CREATE TABLE products (
+    id BIGSERIAL PRIMARY KEY,
+    sku VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(19, 2) NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    version INTEGER NOT NULL DEFAULT 0
+);
+\end{lstlisting}
+
+\subsection*{А.5. V2\_\_idempotency\_keys.sql}
+\begin{lstlisting}[caption={V2\_\_idempotency\_keys.sql --- таблица ключей идемпотентности}, language=SQL]
+CREATE TABLE idempotency_keys (
+    id BIGSERIAL PRIMARY KEY,
+    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+    method VARCHAR(10) NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    response_status INTEGER,
+    response_body TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '24 hours'
+);
+
+CREATE INDEX idx_idempotency_key ON idempotency_keys(idempotency_key);
+CREATE INDEX idx_idempotency_expires ON idempotency_keys(expires_at);
+\end{lstlisting}
+
+\subsection*{А.6. V3\_\_drop\_constraints.sql}
+\begin{lstlisting}[caption={V3\_\_drop\_constraints.sql --- удаление ограничений (профиль non-idempotent)}, language=SQL]
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS uk_order_description_amount;
+ALTER TABLE products DROP CONSTRAINT IF EXISTS products_sku_key;
+\end{lstlisting}
+
+% ============================================================
+% Механизм идемпотентности
+% ============================================================
+
+\subsection*{А.7. IdempotencyApplication.java}
+\begin{lstlisting}[caption={IdempotencyApplication.java --- точка входа}]
+package com.example.idempotency;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class IdempotencyApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(IdempotencyApplication.class, args);
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.8. IdempotencyProperties.java}
+\begin{lstlisting}[caption={IdempotencyProperties.java --- настройки идемпотентности}]
+package com.example.idempotency.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "app.idempotency")
+public class IdempotencyProperties {
+    private boolean enabled = true;
+    private int keyTtlHours = 24;
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public int getKeyTtlHours() { return keyTtlHours; }
+    public void setKeyTtlHours(int keyTtlHours) { this.keyTtlHours = keyTtlHours; }
+}
+\end{lstlisting}
+
+\subsection*{А.9. WebMvcConfig.java}
+\begin{lstlisting}[caption={WebMvcConfig.java --- регистрация фильтра}]
+package com.example.idempotency.config;
+
+import com.example.idempotency.idempotency.IdempotencyFilter;
+import com.example.idempotency.idempotency.IdempotencyService;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableConfigurationProperties(IdempotencyProperties.class)
+public class WebMvcConfig {
+    @Bean
+    public FilterRegistrationBean<IdempotencyFilter> idempotencyFilterRegistration(
+            IdempotencyService idempotencyService, IdempotencyProperties properties) {
+        var reg = new FilterRegistrationBean<IdempotencyFilter>();
+        reg.setFilter(new IdempotencyFilter(idempotencyService, properties));
+        reg.addUrlPatterns("/api/orders/*", "/api/orders",
+                           "/api/payments/*", "/api/payments");
+        reg.setOrder(1);
+        return reg;
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.10. IdempotencyKeyEntity.java}
+\begin{lstlisting}[caption={IdempotencyKeyEntity.java --- сущность ключа идемпотентности}]
+package com.example.idempotency.idempotency;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "idempotency_keys")
+public class IdempotencyKeyEntity {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "idempotency_key", nullable = false, unique = true)
+    private String idempotencyKey;
+
+    @Column(nullable = false, length = 10)
+    private String method;
+
+    @Column(nullable = false, length = 500)
+    private String path;
+
+    @Column(name = "response_status")
+    private Integer responseStatus;
+
+    @Column(name = "response_body", columnDefinition = "TEXT")
+    private String responseBody;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+
+    public IdempotencyKeyEntity() {}
+    public IdempotencyKeyEntity(String key, String method, String path) {
+        this.idempotencyKey = key; this.method = method; this.path = path;
+    }
+
+    // Getters и Setters
+    public Long getId() { return id; }
+    public String getIdempotencyKey() { return idempotencyKey; }
+    public Integer getResponseStatus() { return responseStatus; }
+    public void setResponseStatus(Integer s) { this.responseStatus = s; }
+    public String getResponseBody() { return responseBody; }
+    public void setResponseBody(String b) { this.responseBody = b; }
+}
+\end{lstlisting}
+
+\subsection*{А.11. IdempotencyKeyRepository.java}
+\begin{lstlisting}[caption={IdempotencyKeyRepository.java}]
+package com.example.idempotency.idempotency;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+
+public interface IdempotencyKeyRepository
+        extends JpaRepository<IdempotencyKeyEntity, Long> {
+    Optional<IdempotencyKeyEntity> findByIdempotencyKey(String key);
+}
+\end{lstlisting}
+
+\subsection*{А.12. IdempotencyService.java}
+\begin{lstlisting}[caption={IdempotencyService.java --- сервис управления ключами}]
+package com.example.idempotency.idempotency;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
+
+@Service
+public class IdempotencyService {
+    private final IdempotencyKeyRepository repository;
+
+    public IdempotencyService(IdempotencyKeyRepository repository) {
+        this.repository = repository;
+    }
+
+    public Optional<IdempotencyKeyEntity> findByKey(String key) {
+        return repository.findByIdempotencyKey(key);
+    }
+
+    @Transactional
+    public IdempotencyKeyEntity registerKey(String key, String method, String path) {
+        return repository.save(new IdempotencyKeyEntity(key, method, path));
+    }
+
+    @Transactional
+    public void saveResponse(String key, int status, String responseBody) {
+        repository.findByIdempotencyKey(key).ifPresent(entity -> {
+            entity.setResponseStatus(status);
+            entity.setResponseBody(responseBody);
+            repository.save(entity);
+        });
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.13. IdempotencyFilter.java}
 \begin{lstlisting}[caption={IdempotencyFilter.java --- HTTP-фильтр идемпотентности}]
-public class IdempotencyFilter extends OncePerRequestFilter {
+package com.example.idempotency.idempotency;
 
+import com.example.idempotency.config.IdempotencyProperties;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+public class IdempotencyFilter extends OncePerRequestFilter {
     public static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
     private final IdempotencyService idempotencyService;
     private final IdempotencyProperties properties;
 
+    public IdempotencyFilter(IdempotencyService svc, IdempotencyProperties props) {
+        this.idempotencyService = svc; this.properties = props;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response, FilterChain filterChain)
+            HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
-            return;
+            chain.doFilter(request, response); return;
         }
         if (!properties.isEnabled()) {
-            filterChain.doFilter(request, response);
-            return;
+            chain.doFilter(request, response); return;
         }
         String key = request.getHeader(IDEMPOTENCY_KEY_HEADER);
         if (key == null || key.isBlank()) {
-            response.setStatus(400);
-            response.getWriter().write("{\"error\":\"Idempotency-Key required\"}");
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(
+                "{\"error\":\"Idempotency-Key required\"}");
             return;
         }
         var existing = idempotencyService.findByKey(key);
-        if (existing.isPresent() && existing.get().getResponseStatus() != null) {
+        if (existing.isPresent()) {
             var cached = existing.get();
-            response.setStatus(cached.getResponseStatus());
-            response.getWriter().write(cached.getResponseBody());
+            if (cached.getResponseStatus() != null) {
+                response.setStatus(cached.getResponseStatus());
+                response.setContentType("application/json;charset=UTF-8");
+                if (cached.getResponseBody() != null)
+                    response.getWriter().write(cached.getResponseBody());
+                return;
+            }
+            response.setStatus(HttpStatus.CONFLICT.value());
             return;
         }
-        idempotencyService.registerKey(key, request.getMethod(), request.getRequestURI());
-        ContentCachingResponseWrapper wrapper = new ContentCachingResponseWrapper(response);
-        filterChain.doFilter(request, wrapper);
-        String body = new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+        try {
+            idempotencyService.registerKey(key,
+                request.getMethod(), request.getRequestURI());
+        } catch (DataIntegrityViolationException e) {
+            response.setStatus(HttpStatus.CONFLICT.value()); return;
+        }
+        var wrapper = new ContentCachingResponseWrapper(response);
+        chain.doFilter(request, wrapper);
+        String body = new String(
+            wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
         idempotencyService.saveResponse(key, wrapper.getStatus(), body);
         wrapper.copyBodyToResponse();
     }
 }
 \end{lstlisting}
 
-\subsection*{А.2. OrderController (@RestController)}
+% ============================================================
+% Домен: Заказы (@RestController)
+% ============================================================
 
-\begin{lstlisting}[caption={OrderController.java --- аннотационный контроллер}]
+\subsection*{А.14. Order.java}
+\begin{lstlisting}[caption={Order.java --- сущность заказа}]
+package com.example.idempotency.order;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity @Table(name = "orders")
+public class Order {
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    @Column(nullable = false)
+    private String description;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
+    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    private OrderStatus status = OrderStatus.CREATED;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Order() {}
+    public Order(String description, BigDecimal amount) {
+        this.description = description; this.amount = amount;
+    }
+    // Getters и Setters
+    public UUID getId() { return id; }
+    public String getDescription() { return description; }
+    public void setDescription(String d) { this.description = d; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal a) { this.amount = a; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus s) { this.status = s; }
+}
+\end{lstlisting}
+
+\subsection*{А.15. OrderStatus.java}
+\begin{lstlisting}[caption={OrderStatus.java}]
+package com.example.idempotency.order;
+
+public enum OrderStatus { CREATED, CONFIRMED, CANCELLED }
+\end{lstlisting}
+
+\subsection*{А.16. OrderDto.java}
+\begin{lstlisting}[caption={OrderDto.java --- DTO заказа с валидацией}]
+package com.example.idempotency.order;
+
+import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
+
+public record OrderDto(
+    @NotBlank(message = "Описание обязательно") String description,
+    @NotNull @DecimalMin("0.01") BigDecimal amount,
+    OrderStatus status
+) {}
+\end{lstlisting}
+
+\subsection*{А.17. OrderRepository.java}
+\begin{lstlisting}[caption={OrderRepository.java}]
+package com.example.idempotency.order;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
+public interface OrderRepository extends JpaRepository<Order, UUID> {}
+\end{lstlisting}
+
+\subsection*{А.18. OrderService.java}
+\begin{lstlisting}[caption={OrderService.java --- бизнес-логика заказов}]
+package com.example.idempotency.order;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.*;
+
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository repo) { this.orderRepository = repo; }
+
+    public List<Order> findAll() { return orderRepository.findAll(); }
+
+    public Order findById(UUID id) {
+        return orderRepository.findById(id)
+            .orElseThrow(() -> new OrderNotFoundException(id));
+    }
+
+    @Transactional
+    public Order create(OrderDto dto) {
+        return orderRepository.save(new Order(dto.description(), dto.amount()));
+    }
+
+    @Transactional
+    public Order update(UUID id, OrderDto dto) {
+        var order = findById(id);
+        order.setDescription(dto.description());
+        order.setAmount(dto.amount());
+        if (dto.status() != null) order.setStatus(dto.status());
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public void delete(UUID id) { orderRepository.delete(findById(id)); }
+
+    public static class OrderNotFoundException extends RuntimeException {
+        public OrderNotFoundException(UUID id) {
+            super("Order not found: " + id);
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.19. OrderController.java}
+\begin{lstlisting}[caption={OrderController.java --- тип контроллера \textnumero 1: @RestController}]
+package com.example.idempotency.order;
+
+import jakarta.validation.Valid;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
+
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
     private final OrderService orderService;
 
+    public OrderController(OrderService svc) { this.orderService = svc; }
+
     @GetMapping
     public List<Order> list() { return orderService.findAll(); }
 
+    @GetMapping("/{id}")
+    public Order get(@PathVariable UUID id) { return orderService.findById(id); }
+
     @PostMapping
     public ResponseEntity<Order> create(@Valid @RequestBody OrderDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(dto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(orderService.create(dto));
     }
 
     @PutMapping("/{id}")
@@ -67,63 +520,360 @@ public class OrderController {
         return orderService.update(id, dto);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) { orderService.delete(id); }
 }
 \end{lstlisting}
 
-\subsection*{А.3. PaymentRouter (Functional Endpoints)}
+% ============================================================
+% Домен: Платежи (Functional Endpoints)
+% ============================================================
 
-\begin{lstlisting}[caption={PaymentRouter.java --- функциональная маршрутизация}]
+\subsection*{А.20. Payment.java}
+\begin{lstlisting}[caption={Payment.java --- сущность платежа}]
+package com.example.idempotency.payment;
+
+import com.example.idempotency.order.Order;
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity @Table(name = "payments")
+public class Payment {
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
+    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    private PaymentStatus status = PaymentStatus.PENDING;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Payment() {}
+    public Payment(Order order, BigDecimal amount) {
+        this.order = order; this.amount = amount;
+    }
+    // Getters и Setters
+    public UUID getId() { return id; }
+    public BigDecimal getAmount() { return amount; }
+    public PaymentStatus getStatus() { return status; }
+}
+\end{lstlisting}
+
+\subsection*{А.21. PaymentStatus.java}
+\begin{lstlisting}[caption={PaymentStatus.java}]
+package com.example.idempotency.payment;
+
+public enum PaymentStatus { PENDING, COMPLETED, FAILED }
+\end{lstlisting}
+
+\subsection*{А.22. PaymentDto.java}
+\begin{lstlisting}[caption={PaymentDto.java}]
+package com.example.idempotency.payment;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public record PaymentDto(UUID orderId, BigDecimal amount) {}
+\end{lstlisting}
+
+\subsection*{А.23. PaymentRepository.java}
+\begin{lstlisting}[caption={PaymentRepository.java}]
+package com.example.idempotency.payment;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
+public interface PaymentRepository extends JpaRepository<Payment, UUID> {}
+\end{lstlisting}
+
+\subsection*{А.24. PaymentService.java}
+\begin{lstlisting}[caption={PaymentService.java --- бизнес-логика платежей}]
+package com.example.idempotency.payment;
+
+import com.example.idempotency.order.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.*;
+
+@Service
+public class PaymentService {
+    private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+
+    public PaymentService(PaymentRepository pr, OrderRepository or) {
+        this.paymentRepository = pr; this.orderRepository = or;
+    }
+
+    public List<Payment> findAll() { return paymentRepository.findAll(); }
+
+    public Payment findById(UUID id) {
+        return paymentRepository.findById(id)
+            .orElseThrow(() -> new PaymentNotFoundException(id));
+    }
+
+    @Transactional
+    public Payment create(PaymentDto dto) {
+        var order = orderRepository.findById(dto.orderId())
+            .orElseThrow(() -> new OrderService.OrderNotFoundException(dto.orderId()));
+        return paymentRepository.save(new Payment(order, dto.amount()));
+    }
+
+    public static class PaymentNotFoundException extends RuntimeException {
+        public PaymentNotFoundException(UUID id) {
+            super("Payment not found: " + id);
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.25. PaymentHandler.java}
+\begin{lstlisting}[caption={PaymentHandler.java --- тип контроллера \textnumero 2: HandlerFunction}]
+package com.example.idempotency.payment;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.*;
+import java.net.URI;
+import java.util.UUID;
+
+@Component
+public class PaymentHandler {
+    private final PaymentService paymentService;
+    private final ObjectMapper objectMapper;
+
+    public PaymentHandler(PaymentService svc, ObjectMapper om) {
+        this.paymentService = svc; this.objectMapper = om;
+    }
+
+    public ServerResponse list(ServerRequest request) {
+        return ServerResponse.ok().body(paymentService.findAll());
+    }
+
+    public ServerResponse getById(ServerRequest request) {
+        var id = UUID.fromString(request.pathVariable("id"));
+        try {
+            return ServerResponse.ok().body(paymentService.findById(id));
+        } catch (PaymentService.PaymentNotFoundException e) {
+            return ServerResponse.notFound().build();
+        }
+    }
+
+    public ServerResponse create(ServerRequest request) throws Exception {
+        var dto = objectMapper.readValue(
+            request.servletRequest().getInputStream(), PaymentDto.class);
+        var payment = paymentService.create(dto);
+        return ServerResponse
+            .created(URI.create("/api/payments/" + payment.getId()))
+            .body(payment);
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.26. PaymentRouter.java}
+\begin{lstlisting}[caption={PaymentRouter.java --- тип контроллера \textnumero 2: RouterFunction}]
+package com.example.idempotency.payment;
+
+import org.springframework.context.annotation.*;
+import org.springframework.web.servlet.function.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.servlet.function.RequestPredicates.*;
+
 @Configuration
 public class PaymentRouter {
     @Bean
-    public RouterFunction<ServerResponse> paymentRoutes(PaymentHandler handler) {
+    public RouterFunction<ServerResponse> paymentRoutes(PaymentHandler h) {
         return RouterFunctions.route()
-            .path("/api/payments", builder -> builder
-                .GET("", accept(APPLICATION_JSON), handler::list)
-                .GET("/{id}", accept(APPLICATION_JSON), handler::getById)
-                .POST("", contentType(APPLICATION_JSON), handler::create)
+            .path("/api/payments", b -> b
+                .GET("", accept(APPLICATION_JSON), h::list)
+                .GET("/{id}", accept(APPLICATION_JSON), h::getById)
+                .POST("", contentType(APPLICATION_JSON), h::create)
             ).build();
     }
 }
 \end{lstlisting}
 
-\subsection*{А.4. ProductRepository (Spring Data REST)}
+% ============================================================
+% Домен: Товары (Spring Data REST)
+% ============================================================
 
-\begin{lstlisting}[caption={ProductRepository.java --- автогенерация REST API}]
+\subsection*{А.27. Product.java}
+\begin{lstlisting}[caption={Product.java --- сущность с @Version для optimistic locking}]
+package com.example.idempotency.product;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+@Entity @Table(name = "products")
+public class Product {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false, unique = true, length = 100)
+    private String sku;
+    @Column(nullable = false)
+    private String name;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal price;
+    @Column(nullable = false)
+    private Integer quantity = 0;
+    @Version
+    private Integer version;
+
+    public Product() {}
+    public Product(String sku, String name, BigDecimal price, Integer qty) {
+        this.sku = sku; this.name = name; this.price = price; this.quantity = qty;
+    }
+    // Getters и Setters
+    public Long getId() { return id; }
+    public String getSku() { return sku; }
+    public String getName() { return name; }
+    public void setName(String n) { this.name = n; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer q) { this.quantity = q; }
+    public Integer getVersion() { return version; }
+}
+\end{lstlisting}
+
+\subsection*{А.28. ProductRepository.java}
+\begin{lstlisting}[caption={ProductRepository.java --- тип контроллера \textnumero 3: Spring Data REST}]
+package com.example.idempotency.product;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import java.util.Optional;
+
 @RepositoryRestResource(collectionResourceRel = "products", path = "products")
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findBySku(String sku);
 }
 \end{lstlisting}
 
-\subsection*{А.5. Пример теста идемпотентности}
+\subsection*{А.29. ProductEventHandler.java}
+\begin{lstlisting}[caption={ProductEventHandler.java --- обработчик событий Spring Data REST}]
+package com.example.idempotency.product;
 
-\begin{lstlisting}[caption={Тест: повторный POST с Idempotency-Key}]
-@Test
-@DisplayName("POST with same Idempotency-Key twice - only one order created")
-void postWithSameIdempotencyKey_shouldReturnCachedResponse() throws Exception {
-    var dto = new OrderDto("Laptop", new BigDecimal("89999.99"), null);
-    String body = objectMapper.writeValueAsString(dto);
-    String key = UUID.randomUUID().toString();
+import org.slf4j.*;
+import org.springframework.data.rest.core.annotation.*;
+import org.springframework.stereotype.Component;
 
-    // First request - creates order
-    mockMvc.perform(post("/api/orders")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Idempotency-Key", key)
-            .content(body))
-        .andExpect(status().isCreated());
+@Component @RepositoryEventHandler
+public class ProductEventHandler {
+    private static final Logger log =
+        LoggerFactory.getLogger(ProductEventHandler.class);
 
-    // Second request with same key - returns cached response
-    mockMvc.perform(post("/api/orders")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Idempotency-Key", key)
-            .content(body))
-        .andExpect(status().isCreated());
+    @HandleBeforeCreate
+    public void handleBeforeCreate(Product product) {
+        log.info("Creating product: SKU={}", product.getSku());
+        if (product.getQuantity() == null) product.setQuantity(0);
+    }
 
-    assertEquals(1, orderRepository.count(),
-        "Duplicate POST must not create a second order");
+    @HandleBeforeSave
+    public void handleBeforeSave(Product product) {
+        log.info("Updating product: id={}, version={}",
+            product.getId(), product.getVersion());
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+% Обработка ошибок
+% ============================================================
+
+\subsection*{А.30. GlobalExceptionHandler.java}
+\begin{lstlisting}[caption={GlobalExceptionHandler.java --- глобальная обработка ошибок}]
+package com.example.idempotency.exception;
+
+import com.example.idempotency.order.OrderService;
+import com.example.idempotency.payment.PaymentService;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.*;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OrderService.OrderNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleOrderNotFound(
+            OrderService.OrderNotFoundException e) {
+        return buildError(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(PaymentService.PaymentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentNotFound(
+            PaymentService.PaymentNotFoundException e) {
+        return buildError(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(
+            DataIntegrityViolationException e) {
+        return buildError(HttpStatus.CONFLICT, "Duplicate resource");
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException e) {
+        return buildError(HttpStatus.CONFLICT, "Version conflict");
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidation(
+            MethodArgumentNotValidException e) {
+        var msg = e.getBindingResult().getFieldErrors().stream()
+            .findFirst().map(err -> err.getField() + ": "
+                + err.getDefaultMessage()).orElse("Validation error");
+        return buildError(HttpStatus.BAD_REQUEST, msg);
+    }
+
+    private ResponseEntity<Map<String, Object>> buildError(
+            HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(Map.of(
+            "timestamp", LocalDateTime.now().toString(),
+            "status", status.value(),
+            "error", status.getReasonPhrase(),
+            "message", message));
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+% Тесты
+% ============================================================
+
+\subsection*{А.31. BaseIntegrationTest.java}
+\begin{lstlisting}[caption={BaseIntegrationTest.java --- базовый класс с Testcontainers}]
+package com.example.idempotency;
+
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.*;
+import org.testcontainers.containers.PostgreSQLContainer;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+public abstract class BaseIntegrationTest {
+
+    static final PostgreSQLContainer<?> POSTGRES =
+        new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("idempotency_test")
+            .withUsername("test").withPassword("test");
+
+    static { POSTGRES.start(); }
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+    }
 }
 \end{lstlisting}

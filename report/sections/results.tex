@@ -15,12 +15,12 @@
 
 \begin{verbatim}
 src/main/java/com/example/idempotency/
-├── config/         # Конфигурация (свойства, фильтры)
-├── idempotency/    # Механизм идемпотентности
-├── order/          # @RestController
-├── payment/        # Functional Endpoints
-├── product/        # Spring Data REST
-└── exception/      # Обработка ошибок
+|-- config/         # Конфигурация (свойства, фильтры)
+|-- idempotency/    # Механизм идемпотентности
+|-- order/          # @RestController
+|-- payment/        # Functional Endpoints
+|-- product/        # Spring Data REST
++-- exception/      # Обработка ошибок
 \end{verbatim}
 
 \subsubsection{Схема базы данных}
@@ -31,15 +31,15 @@ src/main/java/com/example/idempotency/
 \centering
 \caption{Схема базы данных}
 \label{tab:db-schema}
-\small
-\begin{tabularx}{\textwidth}{@{}l l l X@{}}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l X l l@{}}
 \toprule
 \textbf{Таблица} & \textbf{Ключевые поля} & \textbf{Constraints} & \textbf{Назначение} \\
 \midrule
-\texttt{orders} & id (UUID PK), description, amount, status & UNIQUE(description, amount) & Хранение заказов \\
-\texttt{payments} & id (UUID PK), order\_id (FK), amount, status & FK $\to$ orders(id) & Хранение платежей \\
-\texttt{products} & id (BIGSERIAL PK), sku, name, price, version & UNIQUE(sku) & Каталог товаров \\
-\texttt{idempotency\_keys} & id, idempotency\_key, method, path, response\_status, response\_body & UNIQUE(idempotency\_key) & Хранилище ключей \\
+orders & id (UUID PK), description, amount, status & UNIQUE(desc, amount) & Заказы \\
+payments & id (UUID PK), order\_id (FK), amount, status & FK $\to$ orders(id) & Платежи \\
+products & id (BIGSERIAL PK), sku, name, price, version & UNIQUE(sku) & Товары \\
+idempotency\_keys & id, key, method, path, response\_status, response\_body & UNIQUE(key) & Ключи \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -51,7 +51,7 @@ src/main/java/com/example/idempotency/
 Механизм идемпотентности реализован через три компонента:
 
 \begin{enumerate}
-    \item \textbf{IdempotencyFilter} --- HTTP-фильтр (\texttt{OncePerRequestFilter}), перехватывающий POST-запросы к \texttt{/api/orders} и \texttt{/api/payments}. Реализует алгоритм~\ref{alg:idempotency-check}. Может быть отключён через конфигурацию \texttt{app.idempotency.enabled=false}.
+    \item \textbf{IdempotencyFilter} --- HTTP-фильтр (наследник \mbox{\texttt{OncePerRequestFilter}}), перехватывающий POST-запросы к эндпоинтам заказов и платежей. Реализует алгоритм~\ref{alg:idempotency-check}. Может быть отключён через параметр \mbox{\texttt{app.idempotency.enabled=false}}.
 
     \item \textbf{IdempotencyService} --- сервис для работы с хранилищем ключей. Предоставляет методы \texttt{findByKey()}, \texttt{registerKey()} и \texttt{saveResponse()}. Операции выполняются в транзакциях для обеспечения атомарности.
 
@@ -63,9 +63,9 @@ src/main/java/com/example/idempotency/
 Приложение поддерживает два режима работы через Spring Profiles:
 
 \begin{itemize}
-    \item \textbf{Профиль по умолчанию} (\texttt{application.yml}): идемпотентность включена (\texttt{app.idempotency.enabled=true}), Flyway применяет миграции V1 и V2, все constraints активны.
+    \item \textbf{Профиль по умолчанию}: идемпотентность включена (\mbox{\texttt{enabled=true}}), Flyway применяет миграции V1 и V2, все constraints активны.
 
-    \item \textbf{Профиль non-idempotent} (\texttt{application-non-idempotent.yml}): идемпотентность отключена (\texttt{app.idempotency.enabled=false}), Flyway дополнительно применяет миграцию V3, которая удаляет UNIQUE constraints на \texttt{orders(description, amount)} и \texttt{products(sku)}.
+    \item \textbf{Профиль non-idempotent}: идемпотентность отключена (\mbox{\texttt{enabled=false}}), Flyway дополнительно применяет миграцию V3, которая удаляет UNIQUE constraints на таблицах \texttt{orders} и \texttt{products}.
 \end{itemize}
 
 Переключение профилей позволяет запускать одни и те же тесты в двух конфигурациях и наглядно демонстрировать последствия отсутствия механизмов идемпотентности.
@@ -98,7 +98,7 @@ NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
 \subsubsection{@RestController (OrderIdempotencyTest)}
 
 \begin{enumerate}
-    \item \textbf{POST с одинаковым Idempotency-Key дважды} --- создаётся только один заказ, второй запрос возвращает кэшированный ответ. Проверяется через \texttt{assertEquals(1, orderRepository.count())}.
+    \item \textbf{POST с одинаковым Idempotency-Key дважды} --- создаётся только один заказ, второй запрос возвращает кэшированный ответ. Проверяется через утверждение \mbox{\texttt{assertEquals(1, count)}}.
     \item \textbf{POST с разными ключами} --- создаются два разных заказа, что подтверждает: идемпотентность привязана к конкретному ключу, а не к содержимому запроса.
     \item \textbf{POST без Idempotency-Key} --- возвращается 400 Bad Request, что предотвращает случайное создание неидемпотентных запросов.
     \item \textbf{PUT идемпотентен} --- повторное обновление с теми же данными не изменяет состояние. Проверяется сравнением полей \texttt{description}, \texttt{amount}, \texttt{status} после двух последовательных PUT.
@@ -120,7 +120,7 @@ NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
 
 \begin{enumerate}
     \item \textbf{POST дубликата SKU} --- 409 Conflict. UNIQUE constraint на поле \texttt{sku} предотвращает создание товара с тем же артикулом.
-    \item \textbf{PUT с корректной версией} --- успешное обновление, \texttt{@Version} автоматически инкрементируется. Проверяется: \texttt{assertEquals(version + 1, updated.getVersion())}.
+    \item \textbf{PUT с корректной версией} --- успешное обновление, \texttt{@Version} автоматически инкрементируется. Проверяется совпадение \mbox{\texttt{version~+~1}} с актуальной версией.
     \item \textbf{Concurrent PUT (два обновления со старой версией)} --- первое обновление проходит успешно (версия 0 $\to$ 1), второе получает 412 Precondition Failed, поскольку передан устаревший ETag. Optimistic locking предотвращает lost update.
     \item \textbf{PATCH идемпотентен} --- повторное применение одного и того же PATCH не изменяет данные (имя товара остаётся тем же после второго PATCH).
     \item \textbf{GET идемпотентен} --- стабильный результат.
@@ -129,8 +129,8 @@ NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
 \subsubsection{Импорт данных (DataImportTest)}
 
 \begin{enumerate}
-    \item \textbf{Импорт заказов из JSON} --- загрузка данных из файла \texttt{orders-input.json}, создание через API, сравнение количества, статусов и сумм с эталонным файлом \texttt{expected-orders-output.json}.
-    \item \textbf{Импорт товаров из CSV} --- загрузка данных из файла \texttt{products-input.csv} через Jackson CSV, сохранение в БД, затем повторная попытка импорта тех же данных: все 3 попытки отклоняются UNIQUE constraint, количество записей не увеличивается.
+    \item \textbf{Импорт заказов из JSON} --- загрузка данных из файла \mbox{\texttt{orders-input.json}}, создание через API, сравнение количества, статусов и сумм с эталонным файлом.
+    \item \textbf{Импорт товаров из CSV} --- загрузка данных из файла \mbox{\texttt{products-input.csv}} через Jackson CSV, сохранение в БД, затем повторная попытка импорта: все 3 попытки отклоняются UNIQUE constraint, количество записей не увеличивается.
 \end{enumerate}
 
 \subsection{Результаты профиля non-idempotent}
@@ -159,4 +159,4 @@ Retry платежа (3 раза) & 3 платежа вместо 1 --- трой
 \end{tabularx}
 \end{table}
 
-Тесты \texttt{NonIdempotentProfileTest} проходят зелёными, подтверждая наличие проблем. Каждый тест использует прямые assertions: например, \texttt{assertTrue(orderRepository.count() >= 2)} проверяет, что без фильтра действительно создаются дубликаты. Это демонстрирует критическое значение механизмов идемпотентности для корректного функционирования системы.
+Тесты \texttt{NonIdempotentProfileTest} проходят зелёными, подтверждая наличие проблем. Каждый тест использует прямые assertions: например, проверяется, что \mbox{\texttt{orderRepository.count() >= 2}} --- без фильтра действительно создаются дубликаты. Это демонстрирует критическое значение механизмов идемпотентности для корректного функционирования системы.
