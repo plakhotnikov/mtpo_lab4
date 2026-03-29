@@ -1,0 +1,20 @@
+{
+  "totalOrders": 3,
+  "orders": [
+    {
+      "description": "Тестовый заказ №1",
+      "amount": 1500.00,
+      "status": "CREATED"
+    },
+    {
+      "description": "Тестовый заказ №2",
+      "amount": 2500.50,
+      "status": "CREATED"
+    },
+    {
+      "description": "Тестовый заказ №3",
+      "amount": 99.99,
+      "status": "CREATED"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+\section{Инструкция по установке и запуску}
+
+\subsection{Требования}
+
+\begin{itemize}
+    \item Java 17+ (JDK)
+    \item Maven 3.8+
+    \item Docker (для PostgreSQL и Testcontainers)
+\end{itemize}
+
+\subsection{Запуск приложения}
+
+\begin{enumerate}
+    \item Запустить PostgreSQL через Docker Compose:
+\begin{verbatim}
+docker-compose up -d
+\end{verbatim}
+
+    \item Собрать и запустить приложение:
+\begin{verbatim}
+mvn spring-boot:run
+\end{verbatim}
+
+    \item API доступно по адресу \texttt{http://localhost:8080}:
+    \begin{itemize}
+        \item \texttt{/api/orders} --- заказы (@RestController)
+        \item \texttt{/api/payments} --- платежи (Functional Endpoints)
+        \item \texttt{/api/products} --- товары (Spring Data REST)
+        \item \texttt{/api/explorer} --- HAL Explorer (Spring Data REST)
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Запуск тестов}
+
+\begin{enumerate}
+    \item Запуск всех тестов (профиль с идемпотентностью):
+\begin{verbatim}
+mvn test
+\end{verbatim}
+
+    \item Запуск тестов без идемпотентности (демонстрация багов):
+\begin{verbatim}
+mvn test -Dtest="NonIdempotentProfileTest"
+\end{verbatim}
+\end{enumerate}
+
+\textbf{Примечание:} для запуска тестов требуется Docker, так как Testcontainers автоматически запускает PostgreSQL в контейнере.
+
+\subsection{Пример использования API}
+
+Создание заказа с Idempotency-Key:
+\begin{verbatim}
+curl -X POST http://localhost:8080/api/orders \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: unique-key-123" \
+  -d '{"description": "Ноутбук", "amount": 89999.99}'
+\end{verbatim}
+
+Повторный запрос с тем же ключом вернёт кэшированный ответ (заказ не дублируется).

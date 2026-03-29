@@ -1,0 +1,162 @@
+\section{Результаты}
+
+\subsection{Описание разработанного программного обеспечения}
+
+Разработано Spring Boot приложение, реализующее REST API для трёх доменов:
+\begin{itemize}
+    \item \textbf{Заказы} (\texttt{/api/orders}) --- управление заказами через аннотационный \texttt{@RestController};
+    \item \textbf{Платежи} (\texttt{/api/payments}) --- обработка платежей через функциональные эндпоинты (\texttt{RouterFunction});
+    \item \textbf{Товары} (\texttt{/api/products}) --- каталог товаров через автогенерируемые эндпоинты Spring Data REST.
+\end{itemize}
+
+\textbf{Стек технологий:} Spring Boot 3.3, Java 17, PostgreSQL 16, Flyway, Testcontainers, Docker Compose.
+
+\subsubsection{Структура проекта}
+
+\begin{verbatim}
+src/main/java/com/example/idempotency/
+├── config/         # Конфигурация (свойства, фильтры)
+├── idempotency/    # Механизм идемпотентности
+├── order/          # @RestController
+├── payment/        # Functional Endpoints
+├── product/        # Spring Data REST
+└── exception/      # Обработка ошибок
+\end{verbatim}
+
+\subsubsection{Схема базы данных}
+
+База данных состоит из четырёх таблиц, управляемых через миграции Flyway:
+
+\begin{table}[H]
+\centering
+\caption{Схема базы данных}
+\label{tab:db-schema}
+\small
+\begin{tabularx}{\textwidth}{@{}l l l X@{}}
+\toprule
+\textbf{Таблица} & \textbf{Ключевые поля} & \textbf{Constraints} & \textbf{Назначение} \\
+\midrule
+\texttt{orders} & id (UUID PK), description, amount, status & UNIQUE(description, amount) & Хранение заказов \\
+\texttt{payments} & id (UUID PK), order\_id (FK), amount, status & FK $\to$ orders(id) & Хранение платежей \\
+\texttt{products} & id (BIGSERIAL PK), sku, name, price, version & UNIQUE(sku) & Каталог товаров \\
+\texttt{idempotency\_keys} & id, idempotency\_key, method, path, response\_status, response\_body & UNIQUE(idempotency\_key) & Хранилище ключей \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Таблица \texttt{idempotency\_keys} содержит поле \texttt{expires\_at} для TTL ключей (по умолчанию 24 часа). Поле \texttt{response\_body} хранит сериализованный JSON-ответ для повторного использования.
+
+\subsubsection{Компоненты механизма идемпотентности}
+
+Механизм идемпотентности реализован через три компонента:
+
+\begin{enumerate}
+    \item \textbf{IdempotencyFilter} --- HTTP-фильтр (\texttt{OncePerRequestFilter}), перехватывающий POST-запросы к \texttt{/api/orders} и \texttt{/api/payments}. Реализует алгоритм~\ref{alg:idempotency-check}. Может быть отключён через конфигурацию \texttt{app.idempotency.enabled=false}.
+
+    \item \textbf{IdempotencyService} --- сервис для работы с хранилищем ключей. Предоставляет методы \texttt{findByKey()}, \texttt{registerKey()} и \texttt{saveResponse()}. Операции выполняются в транзакциях для обеспечения атомарности.
+
+    \item \textbf{IdempotencyKeyEntity} --- JPA-сущность, представляющая запись в таблице \texttt{idempotency\_keys}. Содержит ключ, HTTP-метод, путь запроса, статус и тело кэшированного ответа, а также временные метки создания и истечения.
+\end{enumerate}
+
+\subsubsection{Профили конфигурации}
+
+Приложение поддерживает два режима работы через Spring Profiles:
+
+\begin{itemize}
+    \item \textbf{Профиль по умолчанию} (\texttt{application.yml}): идемпотентность включена (\texttt{app.idempotency.enabled=true}), Flyway применяет миграции V1 и V2, все constraints активны.
+
+    \item \textbf{Профиль non-idempotent} (\texttt{application-non-idempotent.yml}): идемпотентность отключена (\texttt{app.idempotency.enabled=false}), Flyway дополнительно применяет миграцию V3, которая удаляет UNIQUE constraints на \texttt{orders(description, amount)} и \texttt{products(sku)}.
+\end{itemize}
+
+Переключение профилей позволяет запускать одни и те же тесты в двух конфигурациях и наглядно демонстрировать последствия отсутствия механизмов идемпотентности.
+
+\subsection{Результаты тестирования (профиль idempotent)}
+
+Основной набор из 22 интеграционных тестов проходит успешно:
+
+\begin{table}[H]
+\centering
+\caption{Результаты тестирования (профиль idempotent)}
+\label{tab:results-idempotent}
+\begin{tabular}{@{}lccl@{}}
+\toprule
+\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Результат} & \textbf{Тип контроллера} \\
+\midrule
+OrderIdempotencyTest       & 6  & PASS & @RestController \\
+PaymentIdempotencyTest     & 5  & PASS & Functional Endpoints \\
+ProductIdempotencyTest     & 5  & PASS & Spring Data REST \\
+DataImportTest             & 2  & PASS & Импорт JSON/CSV \\
+NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
+\midrule
+\textbf{Итого}             & \textbf{22} & \textbf{PASS} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Тест-кейсы по контроллерам}
+
+\subsubsection{@RestController (OrderIdempotencyTest)}
+
+\begin{enumerate}
+    \item \textbf{POST с одинаковым Idempotency-Key дважды} --- создаётся только один заказ, второй запрос возвращает кэшированный ответ. Проверяется через \texttt{assertEquals(1, orderRepository.count())}.
+    \item \textbf{POST с разными ключами} --- создаются два разных заказа, что подтверждает: идемпотентность привязана к конкретному ключу, а не к содержимому запроса.
+    \item \textbf{POST без Idempotency-Key} --- возвращается 400 Bad Request, что предотвращает случайное создание неидемпотентных запросов.
+    \item \textbf{PUT идемпотентен} --- повторное обновление с теми же данными не изменяет состояние. Проверяется сравнением полей \texttt{description}, \texttt{amount}, \texttt{status} после двух последовательных PUT.
+    \item \textbf{DELETE идемпотентен} --- первый вызов возвращает 204 No Content (ресурс удалён), второй --- 404 Not Found (ресурс уже отсутствует). Оба варианта соответствуют идемпотентному поведению.
+    \item \textbf{GET идемпотентен} --- три последовательных GET-запроса возвращают одинаковый JSON-ответ.
+\end{enumerate}
+
+\subsubsection{Functional Endpoints (PaymentIdempotencyTest)}
+
+\begin{enumerate}
+    \item \textbf{POST платежа с одним ключом дважды} --- создаётся один платёж. Демонстрирует, что IdempotencyFilter работает с RouterFunction так же, как с @RestController.
+    \item \textbf{POST с разными ключами} --- создаются два платежа.
+    \item \textbf{POST без ключа} --- 400 Bad Request.
+    \item \textbf{GET идемпотентен} --- стабильный результат при многократных запросах.
+    \item \textbf{Retry (3 запроса с одним ключом)} --- создаётся один платёж, несмотря на 3 попытки. Это ключевой production-сценарий: клиент повторяет запрос из-за таймаута, но система обрабатывает его только один раз.
+\end{enumerate}
+
+\subsubsection{Spring Data REST (ProductIdempotencyTest)}
+
+\begin{enumerate}
+    \item \textbf{POST дубликата SKU} --- 409 Conflict. UNIQUE constraint на поле \texttt{sku} предотвращает создание товара с тем же артикулом.
+    \item \textbf{PUT с корректной версией} --- успешное обновление, \texttt{@Version} автоматически инкрементируется. Проверяется: \texttt{assertEquals(version + 1, updated.getVersion())}.
+    \item \textbf{Concurrent PUT (два обновления со старой версией)} --- первое обновление проходит успешно (версия 0 $\to$ 1), второе получает 412 Precondition Failed, поскольку передан устаревший ETag. Optimistic locking предотвращает lost update.
+    \item \textbf{PATCH идемпотентен} --- повторное применение одного и того же PATCH не изменяет данные (имя товара остаётся тем же после второго PATCH).
+    \item \textbf{GET идемпотентен} --- стабильный результат.
+\end{enumerate}
+
+\subsubsection{Импорт данных (DataImportTest)}
+
+\begin{enumerate}
+    \item \textbf{Импорт заказов из JSON} --- загрузка данных из файла \texttt{orders-input.json}, создание через API, сравнение количества, статусов и сумм с эталонным файлом \texttt{expected-orders-output.json}.
+    \item \textbf{Импорт товаров из CSV} --- загрузка данных из файла \texttt{products-input.csv} через Jackson CSV, сохранение в БД, затем повторная попытка импорта тех же данных: все 3 попытки отклоняются UNIQUE constraint, количество записей не увеличивается.
+\end{enumerate}
+
+\subsection{Результаты профиля non-idempotent}
+
+Профиль \texttt{non-idempotent} отключает механизмы идемпотентности:
+\begin{itemize}
+    \item IdempotencyFilter пропускает все POST-запросы без проверки заголовка;
+    \item Unique constraint на \texttt{orders(description, amount)} удалён миграцией V3;
+    \item Unique constraint на \texttt{products(sku)} удалён миграцией V3.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Демонстрация проблем без идемпотентности (профиль non-idempotent)}
+\label{tab:results-non-idempotent}
+\small
+\begin{tabularx}{\textwidth}{@{}X X c@{}}
+\toprule
+\textbf{Тест} & \textbf{Обнаруженная проблема} & \textbf{Статус} \\
+\midrule
+POST без Idempotency-Key & Запрос проходит без проверки --- любой POST создаёт ресурс & BUG \\
+Повторный POST с тем же ключом & Создаётся дубликат заказа --- ключ игнорируется & BUG \\
+POST с дубликатом SKU & Создаётся второй товар с тем же артикулом & BUG \\
+Retry платежа (3 раза) & 3 платежа вместо 1 --- тройное списание средств & BUG \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Тесты \texttt{NonIdempotentProfileTest} проходят зелёными, подтверждая наличие проблем. Каждый тест использует прямые assertions: например, \texttt{assertTrue(orderRepository.count() >= 2)} проверяет, что без фильтра действительно создаются дубликаты. Это демонстрирует критическое значение механизмов идемпотентности для корректного функционирования системы.

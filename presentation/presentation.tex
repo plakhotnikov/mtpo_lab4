@@ -1,0 +1,285 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{csquotes}
+
+\usepackage[backend=biber, style=gost-numeric, sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\lstdefinestyle{java}{
+  language=Java,
+  basicstyle=\tiny\ttfamily,
+  keywordstyle=\color{blue}\bfseries,
+  stringstyle=\color{red},
+  commentstyle=\color{gray}\itshape,
+  breaklines=true,
+  tabsize=2,
+  showstringspaces=false
+}
+\lstset{style=java}
+
+\algrenewcommand\algorithmicif{\textbf{если}}
+\algrenewcommand\algorithmicthen{\textbf{тогда}}
+\algrenewcommand\algorithmicelse{\textbf{иначе}}
+\algrenewcommand\algorithmicend{\textbf{конец}}
+\algrenewcommand\algorithmicreturn{\textbf{вернуть}}
+\algrenewcommand\algorithmicfunction{\textbf{Функция}}
+\algrenewcommand\algorithmicrequire{\textbf{Вход:}}
+\algrenewcommand\algorithmicensure{\textbf{Выход:}}
+
+\floatname{algorithm}{Алгоритм}
+
+\title{Тестирование идемпотентности и повторяемости запросов в REST API\\
+\small по дисциплине <<Методы тестирования программного обеспечения>>}
+\author{Плахотников Владимир Александрович}
+\institute{СПбПУ, ИКНТ ВШ ПИ}
+\date{2026}
+
+\begin{document}
+
+% ===== СЛАЙД 1: ТИТУЛЬНЫЙ =====
+\begin{frame}[plain]
+\maketitle
+\small
+\begin{tabular}[t]{@{}l@{\hspace{1pt}}p{.56\textwidth}@{}}
+\qquad \qquad \qquad \qquad \qquad \qquad Выполнил студент группы 5130903/30303: \\
+\qquad \qquad \qquad \qquad \qquad \qquad Плахотников Владимир Александрович
+\end{tabular}%
+
+\begin{tabular}[t]{@{}l@{\hspace{1pt}}p{.32\textwidth}@{}}
+\\
+\qquad \qquad \qquad \qquad \qquad \qquad Руководитель:\\
+\qquad \qquad \qquad \qquad \qquad \qquad Старший преподаватель В.\,А.~Пархоменко
+\end{tabular}%
+\end{frame}
+
+% ===== СЛАЙД 2: СТРУКТУРА =====
+\begin{frame}{Структура доклада}
+\tableofcontents
+\end{frame}
+
+% ===== СЛАЙД 3: ПОСТАНОВКА ПРОБЛЕМЫ =====
+\section{Постановка проблемы}
+\begin{frame}{Постановка проблемы}
+\textbf{Проблема:} При сетевых сбоях клиент повторяет HTTP-запрос (retry).
+
+\vspace{3mm}
+\textbf{Без идемпотентности:}
+\begin{itemize}
+    \item POST-запрос на создание заказа $\times 3$ retry $\Rightarrow$ 3 заказа
+    \item POST-запрос на платёж $\times 3$ retry $\Rightarrow$ \textbf{тройное списание}
+    \item POST товара с тем же SKU $\Rightarrow$ дубликат в каталоге
+\end{itemize}
+
+\vspace{3mm}
+\textbf{Цель:} Исследовать и продемонстрировать тестирование идемпотентности REST API с тремя различными типами контроллеров Spring Boot.
+\end{frame}
+
+% ===== СЛАЙД 4: МАТЕМАТИЧЕСКАЯ ФОРМАЛИЗАЦИЯ =====
+\section{Математическая формализация}
+\begin{frame}{Математическая формализация}
+\textbf{Определение.} Операция $O: S \to S$ \emph{идемпотентна}, если:
+$$O^n(s) = O(s), \quad \forall n \geq 1, \forall s \in S$$
+
+\vspace{3mm}
+\textbf{HTTP-методы (RFC 9110):}
+
+\begin{table}
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Метод & Safe & Идемпотентный \\
+\midrule
+GET, HEAD & \checkmark & \checkmark \\
+PUT, DELETE & --- & \checkmark \\
+POST, PATCH & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{3mm}
+\textbf{Решение для POST:} Idempotency-Key $k$:
+$$O'(s, r, k) = \begin{cases} O(s, r), & k \notin KeyStore \\ cached(k), & k \in KeyStore \end{cases}$$
+\end{frame}
+
+% ===== СЛАЙД 5: ПСЕВДОКОД =====
+\section{Алгоритм}
+\begin{frame}{Алгоритм проверки идемпотентности}
+\begin{algorithm}[H]
+\footnotesize
+\caption{CheckIdempotency($request$)}
+\begin{algorithmic}[1]
+\If{$request.method \neq$ POST}
+    \State \Return ProcessRequest($request$)
+\EndIf
+\State $key \gets$ headers[``Idempotency-Key'']
+\If{$key = \varnothing$}
+    \State \Return 400 Bad Request
+\EndIf
+\State $cached \gets KeyStore.find(key)$
+\If{$cached \neq \varnothing$ и $cached.response \neq \varnothing$}
+    \State \Return $cached.response$ \Comment{кэшированный ответ}
+\EndIf
+\State $KeyStore.register(key)$
+\State $response \gets ProcessRequest(request)$
+\State $KeyStore.save(key, response)$
+\State \Return $response$
+\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+% ===== СЛАЙД 6: ТРИ ТИПА КОНТРОЛЛЕРОВ =====
+\section{Три типа контроллеров}
+\begin{frame}{Три кардинально разных типа контроллеров Spring}
+\footnotesize
+\begin{table}
+\centering
+\begin{tabular}{@{}p{2.5cm}p{3.5cm}p{3.5cm}p{3cm}@{}}
+\toprule
+ & \textbf{@RestController} & \textbf{Functional (WebMvc.fn)} & \textbf{Spring Data REST} \\
+\midrule
+Домен & Заказы & Платежи & Товары \\
+Стиль & Аннотации & Функциональный & Автогенерация \\
+Маршрутизация & @GetMapping & RouterFunction & Автоматическая \\
+Идемпотентность & Idempotency-Key & Idempotency-Key & @Version + ETag \\
+Источник & Spring Guides & Spring Framework docs & Spring Data REST Guide \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{2mm}
+\textbf{Ключевое отличие:} способ определения маршрутов и обработчиков принципиально различается, что влияет на подход к обеспечению идемпотентности.
+\end{frame}
+
+% ===== СЛАЙД 7: ИЛЛЮСТРАТИВНЫЙ ПРИМЕР =====
+\section{Иллюстративный пример}
+\begin{frame}{Иллюстративный пример: retry платежа}
+\textbf{Сценарий:} Клиент отправляет POST /api/payments, получает таймаут, повторяет запрос.
+
+\vspace{3mm}
+\textbf{С идемпотентностью (Idempotency-Key: ``pay-001''):}
+\begin{enumerate}
+    \footnotesize
+    \item Запрос \#1: key=``pay-001'' $\notin$ KeyStore $\Rightarrow$ register, создать платёж, сохранить ответ
+    \item Запрос \#2 (retry): key=``pay-001'' $\in$ KeyStore $\Rightarrow$ \textbf{вернуть кэш}
+    \item Результат: \textbf{1 платёж} (корректно)
+\end{enumerate}
+
+\vspace{3mm}
+\textbf{Без идемпотентности:}
+\begin{enumerate}
+    \footnotesize
+    \item Запрос \#1: создать платёж $\Rightarrow$ списание \#1
+    \item Запрос \#2 (retry): создать платёж $\Rightarrow$ списание \#2
+    \item Результат: \textbf{2 платежа --- двойное списание!}
+\end{enumerate}
+\end{frame}
+
+% ===== СЛАЙД 8: ПОШАГОВОЕ ВЫПОЛНЕНИЕ =====
+\begin{frame}{Пошаговое выполнение на данных}
+\footnotesize
+\textbf{Вход:} POST /api/orders, body: \{description: ``Ноутбук'', amount: 89999.99\}
+
+\vspace{2mm}
+\begin{tabular}{@{}clll@{}}
+\toprule
+\textbf{Шаг} & \textbf{Действие} & \textbf{KeyStore} & \textbf{orders (count)} \\
+\midrule
+0 & Начальное состояние & $\varnothing$ & 0 \\
+1 & Получен key=``abc'' & $\varnothing$ & 0 \\
+2 & find(``abc'') $= \varnothing$ & $\varnothing$ & 0 \\
+3 & register(``abc'') & \{abc: pending\} & 0 \\
+4 & INSERT order & \{abc: pending\} & \textbf{1} \\
+5 & save(``abc'', 201, body) & \{abc: 201, body\} & 1 \\
+\midrule
+6 & Retry: key=``abc'' & \{abc: 201, body\} & 1 \\
+7 & find(``abc'') $\neq \varnothing$ & \{abc: 201, body\} & 1 \\
+8 & return cached 201 & \{abc: 201, body\} & \textbf{1} \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\textbf{Результат:} 1 заказ, 2-й запрос вернул кэш. Идемпотентность обеспечена.
+\end{frame}
+
+% ===== СЛАЙД 9: ТЕСТИРОВАНИЕ =====
+\section{Апробация}
+\begin{frame}{Результаты тестирования}
+\textbf{Технологии:} JUnit 5 + Testcontainers (PostgreSQL в Docker) + MockMvc
+
+\vspace{3mm}
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Профиль} & \textbf{Результат} \\
+\midrule
+OrderIdempotencyTest & 6 & idempotent & \textcolor{green!70!black}{PASS} \\
+PaymentIdempotencyTest & 5 & idempotent & \textcolor{green!70!black}{PASS} \\
+ProductIdempotencyTest & 5 & idempotent & \textcolor{green!70!black}{PASS} \\
+DataImportTest & 2 & idempotent & \textcolor{green!70!black}{PASS} \\
+\midrule
+NonIdempotentProfileTest & 4 & non-idempotent & \textcolor{green!70!black}{PASS*} \\
+\midrule
+\textbf{Итого} & \textbf{22} & & \textbf{PASS} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{2mm}
+\footnotesize *NonIdempotentProfileTest: тесты проходят, \textbf{подтверждая наличие багов} при отключённой идемпотентности (дубликаты, тройное списание).
+\end{frame}
+
+% ===== СЛАЙД 10: ДЕМОНСТРАЦИЯ ПРОФИЛЕЙ =====
+\begin{frame}{Профиль non-idempotent: демонстрация проблем}
+\footnotesize
+\begin{table}
+\centering
+\begin{tabular}{@{}p{5cm}p{5cm}c@{}}
+\toprule
+\textbf{Тест} & \textbf{Проблема} & \textbf{Статус} \\
+\midrule
+POST без Idempotency-Key & Проходит без проверки & \textcolor{red}{BUG} \\
+Повторный POST (тот же key) & Дубликат заказа & \textcolor{red}{BUG} \\
+Дубликат SKU товара & Проходит (нет constraint) & \textcolor{red}{BUG} \\
+3x retry платежа & Тройное списание & \textcolor{red}{BUG} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{3mm}
+\textbf{Ключевой вывод:} отключение механизмов идемпотентности приводит к критическим багам, обнаруживаемым тестами.
+\end{frame}
+
+% ===== СЛАЙД 11: ВЫВОДЫ =====
+\section{Выводы}
+\begin{frame}{Выводы}
+\begin{enumerate}
+    \item Формализована математическая модель идемпотентности HTTP: $O^n(s) = O(s)$
+    \item Реализованы 3 типа контроллеров Spring с разными механизмами идемпотентности:
+    \begin{itemize}
+        \item @RestController + Idempotency-Key
+        \item Functional Endpoints + Idempotency-Key
+        \item Spring Data REST + @Version/ETag
+    \end{itemize}
+    \item 22 интеграционных теста (Testcontainers + PostgreSQL)
+    \item Профиль non-idempotent демонстрирует: без идемпотентности --- дубли и тройное списание
+\end{enumerate}
+
+\vspace{5mm}
+\centering
+\textbf{Спасибо за внимание!}
+\end{frame}
+
+\end{document}

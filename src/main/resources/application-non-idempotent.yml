@@ -1,0 +1,15 @@
+# Профиль БЕЗ идемпотентности.
+# Используется для демонстрации того, как система ведёт себя
+# без защитных механизмов (тесты на этом профиле падают).
+app:
+  idempotency:
+    enabled: false
+
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration-non-idempotent
+  jpa:
+    properties:
+      hibernate:
+        # Отключаем optimistic locking для демонстрации lost updates
+        '[jakarta.persistence.lock.timeout]': 0

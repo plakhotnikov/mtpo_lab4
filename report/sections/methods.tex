@@ -1,0 +1,261 @@
+\section{Методы}
+
+\subsection{Математическая постановка задачи идемпотентности}
+
+\textbf{Определение.} Функция $f: X \to X$ называется \emph{идемпотентной}, если для любого $x \in X$:
+\begin{equation}
+    f(f(x)) = f(x)
+\end{equation}
+
+В контексте HTTP API определим:
+\begin{itemize}
+    \item $S$ --- множество состояний системы (совокупность данных в БД);
+    \item $R$ --- множество HTTP-запросов;
+    \item $O: S \times R \to S \times \text{Response}$ --- операция обработки запроса;
+    \item $\pi_1(O(s, r))$ --- проекция на новое состояние.
+\end{itemize}
+
+\textbf{Определение (идемпотентность HTTP-метода).} HTTP-метод $m$ называется идемпотентным, если для любого состояния $s \in S$ и запроса $r$ с методом $m$:
+\begin{equation}
+    \pi_1(O^n(s, r)) = \pi_1(O(s, r)), \quad \forall n \geq 1
+\end{equation}
+где $O^n$ обозначает $n$-кратное применение операции, при этом каждое следующее применение использует состояние, полученное на предыдущем шаге:
+\begin{equation}
+    O^1(s, r) = O(s, r), \quad O^{n+1}(s, r) = O(\pi_1(O^n(s, r)),\; r)
+\end{equation}
+
+\textbf{Свойства.} Согласно RFC 9110~\cite{rfc9110}:
+\begin{itemize}
+    \item \textbf{Идемпотентные методы:} GET, HEAD, PUT, DELETE, OPTIONS
+    \item \textbf{Неидемпотентные методы:} POST, PATCH
+    \item \textbf{Safe (безопасные) методы:} GET, HEAD, OPTIONS --- не изменяют состояние
+\end{itemize}
+
+Формально, для safe-метода $m$:
+\begin{equation}
+    \pi_1(O(s, r)) = s, \quad \forall s \in S, r \text{ с методом } m
+\end{equation}
+
+Из этого следует, что каждый safe-метод является идемпотентным, но не наоборот: DELETE изменяет состояние при первом вызове (удаляет ресурс), однако повторные вызовы не изменяют его далее --- ресурс уже отсутствует.
+
+\textbf{Задача.} Для метода POST, который не является идемпотентным по определению, необходимо обеспечить идемпотентность через дополнительные механизмы. Обозначим $k$ --- ключ идемпотентности. Тогда модифицированная операция $O'$:
+\begin{equation}
+    O'(s, r, k) =
+    \begin{cases}
+        O(s, r), & \text{если } k \notin \text{KeyStore}(s) \\
+        (s, \text{CachedResponse}(k)), & \text{если } k \in \text{KeyStore}(s)
+    \end{cases}
+\end{equation}
+что гарантирует: $\pi_1(O'^n(s, r, k)) = \pi_1(O'(s, r, k)), \quad \forall n \geq 1$.
+
+\textbf{Доказательство.} Пусть $s_1 = \pi_1(O'(s, r, k))$. При первом вызове $k \notin \text{KeyStore}(s)$, поэтому выполняется $O(s, r)$ и ключ $k$ регистрируется в хранилище. При втором вызове $k \in \text{KeyStore}(s_1)$, поэтому состояние не изменяется: $\pi_1(O'(s_1, r, k)) = s_1$. По индукции, для любого $n \geq 1$: $\pi_1(O'^n(s, r, k)) = s_1 = \pi_1(O'(s, r, k))$. $\square$
+
+\subsection{Классификация HTTP-методов по идемпотентности}
+
+Спецификация HTTP (RFC 9110~\cite{rfc9110}) определяет свойства методов следующим образом:
+
+\begin{table}[H]
+\centering
+\caption{Свойства HTTP-методов (RFC 9110)}
+\label{tab:http-methods}
+\begin{tabular}{@{}lcccp{5cm}@{}}
+\toprule
+\textbf{Метод} & \textbf{Safe} & \textbf{Идемп.} & \textbf{Тело} & \textbf{Семантика} \\
+\midrule
+GET     & Да  & Да  & Нет & Получение представления ресурса \\
+HEAD    & Да  & Да  & Нет & Получение заголовков без тела \\
+PUT     & Нет & Да  & Да  & Полная замена состояния ресурса \\
+DELETE  & Нет & Да  & Нет & Удаление ресурса \\
+POST    & Нет & Нет & Да  & Создание или произвольная обработка \\
+PATCH   & Нет & Нет & Да  & Частичное обновление ресурса \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Различие между PUT и PATCH имеет принципиальное значение для идемпотентности. PUT заменяет ресурс целиком, поэтому повторный вызов с теми же данными не меняет состояние. PATCH применяет дельту: например, операция <<увеличить количество на 1>> при повторном применении даст другой результат, поэтому PATCH не является идемпотентным в общем случае.
+
+\subsection{Паттерн Idempotency-Key}
+
+Согласно IETF-стандарту~\cite{ietf-idempotency-key}, клиент передаёт уникальный ключ в заголовке \texttt{Idempotency-Key}. Сервер сохраняет этот ключ вместе с кэшированным ответом. При повторном запросе с тем же ключом сервер возвращает кэшированный ответ без повторного выполнения операции.
+
+Данный паттерн широко применяется в production-системах. В частности, платёжная система Stripe требует заголовок \texttt{Idempotency-Key} для всех POST-запросов, связанных с финансовыми операциями~\cite{stripe-idempotency}. Это предотвращает дублирование платежей при retry.
+
+Жизненный цикл ключа идемпотентности:
+\begin{enumerate}
+    \item \textbf{Генерация} --- клиент генерирует UUID перед первым запросом.
+    \item \textbf{Регистрация} --- сервер сохраняет ключ в хранилище (БД) до обработки запроса.
+    \item \textbf{Обработка} --- выполняется бизнес-логика, результат кэшируется.
+    \item \textbf{Повторное использование} --- при повторном запросе возвращается кэш.
+    \item \textbf{Истечение} --- по прошествии TTL (обычно 24 часа) ключ удаляется.
+\end{enumerate}
+
+\subsection{Optimistic Locking как механизм идемпотентности}
+
+Для метода PUT идемпотентность может быть усилена через \emph{optimistic locking}~\cite{fowler2002patterns}. Каждая сущность содержит поле версии $v$. При обновлении клиент передаёт текущую версию, и сервер проверяет совпадение:
+
+\begin{equation}
+    \text{Update}(s, r, v) =
+    \begin{cases}
+        (s', \text{200 OK}), & \text{если } v = \text{CurrentVersion}(s) \\
+        (s, \text{409 Conflict}), & \text{если } v \neq \text{CurrentVersion}(s)
+    \end{cases}
+\end{equation}
+
+В Spring Data REST это реализуется через аннотацию \texttt{@Version}: Hibernate автоматически добавляет проверку версии в SQL-запрос UPDATE, а Spring генерирует HTTP-заголовок ETag из значения версии. Клиент передаёт ETag через заголовок \texttt{If-Match}, и при несовпадении версий сервер возвращает \texttt{412 Precondition Failed}.
+
+Это предотвращает проблему \emph{lost update} --- ситуацию, когда два клиента одновременно читают одну версию ресурса, модифицируют его и сохраняют, при этом изменения первого клиента теряются.
+
+\subsection{Псевдокод алгоритма проверки идемпотентности}
+
+\begin{algorithm}[H]
+\caption{Проверка идемпотентности HTTP-запроса}
+\label{alg:idempotency-check}
+\begin{algorithmic}[1]
+\Require HTTP-запрос $request$, хранилище ключей $KeyStore$
+\Ensure HTTP-ответ $response$
+
+\Function{CheckIdempotency}{$request$}
+    \If{$request.method \neq$ POST}
+        \State \Return \Call{ProcessRequest}{$request$} \Comment{GET/PUT/DELETE идемпотентны}
+    \EndIf
+
+    \State $key \gets request.headers[\text{``Idempotency-Key''}]$
+
+    \If{$key = \varnothing$}
+        \State \Return \texttt{400 Bad Request} \Comment{Ключ обязателен для POST}
+    \EndIf
+
+    \State $cached \gets KeyStore.\text{find}(key)$
+
+    \If{$cached \neq \varnothing$ \textbf{и} $cached.response \neq \varnothing$}
+        \State \Return $cached.response$ \Comment{Повторный запрос --- кэшированный ответ}
+    \EndIf
+
+    \If{$cached \neq \varnothing$ \textbf{и} $cached.response = \varnothing$}
+        \State \Return \texttt{409 Conflict} \Comment{Запрос уже обрабатывается}
+    \EndIf
+
+    \State $KeyStore.\text{register}(key, request.method, request.path)$
+    \State $response \gets$ \Call{ProcessRequest}{$request$}
+    \State $KeyStore.\text{saveResponse}(key, response)$
+    \State \Return $response$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Сложность алгоритма.} Поиск ключа в хранилище выполняется за $O(1)$ при использовании индекса (B-tree) на поле \texttt{idempotency\_key}. Регистрация и сохранение ответа --- по одной операции INSERT/UPDATE. Общая сложность: $O(1)$ дополнительных операций к каждому POST-запросу.
+
+\textbf{Обработка конкурентных запросов.} Строка 15 алгоритма предотвращает гонку (race condition): если два запроса с одним ключом поступают одновременно, только первый успешно зарегистрирует ключ (благодаря UNIQUE constraint в БД), второй получит ошибку \texttt{DataIntegrityViolationException} и вернёт 409 Conflict.
+
+\subsection{Пошаговое выполнение алгоритма на иллюстративных данных}
+
+\textbf{Сценарий:} клиент создаёт заказ (POST /api/orders) и из-за таймаута повторяет запрос.
+
+\textbf{Входные данные:}
+\begin{itemize}
+    \item Запрос: \texttt{POST /api/orders}, тело: \texttt{\{``description'': ``Ноутбук'', ``amount'': 89999.99\}}
+    \item Заголовок: \texttt{Idempotency-Key: abc-123}
+    \item Начальное состояние: таблица \texttt{orders} пуста, \texttt{KeyStore} пуст
+\end{itemize}
+
+\textbf{Первый запрос (шаг за шагом):}
+\begin{enumerate}
+    \item Метод = POST $\Rightarrow$ проверяем Idempotency-Key (строка 2 алгоритма)
+    \item $key$ = ``abc-123'' $\neq \varnothing$ $\Rightarrow$ продолжаем (строка 6)
+    \item $KeyStore.\text{find}(\text{``abc-123''}) = \varnothing$ $\Rightarrow$ ключ новый (строка 9)
+    \item $KeyStore.\text{register}(\text{``abc-123''}, \text{POST}, \text{``/api/orders''})$ (строка 17)
+    \item Выполняем \texttt{ProcessRequest}: INSERT INTO orders $\Rightarrow$ заказ создан (id=\texttt{e7f1...}) (строка 18)
+    \item $KeyStore.\text{saveResponse}(\text{``abc-123''}, 201, \text{``\{id: e7f1...\}''})$ (строка 19)
+    \item Ответ: \texttt{201 Created}, тело: \texttt{\{id: ``e7f1...'', description: ``Ноутбук''\}}
+\end{enumerate}
+
+\textbf{Повторный запрос (retry после таймаута):}
+\begin{enumerate}
+    \item Метод = POST $\Rightarrow$ проверяем Idempotency-Key (строка 2)
+    \item $key$ = ``abc-123'' $\neq \varnothing$ $\Rightarrow$ продолжаем (строка 6)
+    \item $KeyStore.\text{find}(\text{``abc-123''}) \neq \varnothing$, $cached.response \neq \varnothing$ (строка 10)
+    \item Возвращаем кэшированный ответ: \texttt{201 Created}, тело: \texttt{\{id: ``e7f1...''\}} (строка 11)
+    \item \textbf{Заказ НЕ дублируется} --- в таблице по-прежнему одна запись
+\end{enumerate}
+
+\textbf{Трассировка состояний:}
+
+\begin{table}[H]
+\centering
+\caption{Пошаговая трассировка алгоритма на иллюстративных данных}
+\label{tab:trace}
+\small
+\begin{tabularx}{\textwidth}{@{}c X l c@{}}
+\toprule
+\textbf{Шаг} & \textbf{Действие} & \textbf{KeyStore} & \textbf{orders} \\
+\midrule
+0 & Начальное состояние & $\varnothing$ & 0 записей \\
+1 & Получен key=``abc-123'' & $\varnothing$ & 0 записей \\
+2 & find(``abc-123'') $= \varnothing$ & $\varnothing$ & 0 записей \\
+3 & register(``abc-123'') & \{abc-123: pending\} & 0 записей \\
+4 & INSERT INTO orders & \{abc-123: pending\} & 1 запись \\
+5 & saveResponse(``abc-123'', 201) & \{abc-123: 201, body\} & 1 запись \\
+\midrule
+6 & Retry: key=``abc-123'' & \{abc-123: 201, body\} & 1 запись \\
+7 & find(``abc-123'') $\neq \varnothing$ & \{abc-123: 201, body\} & 1 запись \\
+8 & return cached(201) & \{abc-123: 201, body\} & \textbf{1 запись} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Типы организации контроллеров в Spring}
+
+В данной работе используются три кардинально различных подхода к организации REST-контроллеров в Spring Framework (таблица~\ref{tab:controller-types}).
+
+\begin{table}[H]
+\centering
+\caption{Сравнение типов контроллеров Spring}
+\label{tab:controller-types}
+\small
+\begin{tabularx}{\textwidth}{@{}l X X X@{}}
+\toprule
+\textbf{Характеристика} & \textbf{@RestController} & \textbf{Functional Endpoints} & \textbf{Spring Data REST} \\
+\midrule
+Стиль & Аннотационный & Функциональный & Автогенерация \\
+Маршрутизация & @GetMapping, @PostMapping & RouterFunction & Автоматическая \\
+Обработчик & Метод контроллера & HandlerFunction & Репозиторий \\
+Бизнес-логика & В Service-слое & В Handler-классе & EventHandler \\
+Канонический пример & Spring Guides REST & Spring Framework docs & Spring Data REST Guide \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{@RestController (аннотационный подход)}
+
+Классический подход, применяемый в Spring Guides~\cite{spring-guides-rest}. Контроллер аннотируется \texttt{@RestController}, маршруты определяются через \texttt{@GetMapping}, \texttt{@PostMapping} и т.\,д. Обработка запроса делегируется сервисному слою. Этот подход является наиболее распространённым в экосистеме Spring и обеспечивает декларативное определение API через аннотации.
+
+Архитектура следует паттерну <<контроллер--сервис--репозиторий>>: контроллер принимает HTTP-запрос, валидирует DTO, передаёт в сервис, который содержит бизнес-логику и взаимодействует с репозиторием для доступа к данным. Идемпотентность POST обеспечивается внешним HTTP-фильтром (\texttt{IdempotencyFilter}), который перехватывает запрос до попадания в контроллер.
+
+\subsubsection{Functional Endpoints (WebMvc.fn)}
+
+Функциональный подход из Spring Framework~\cite{spring-functional-endpoints}. Маршруты определяются программно через \texttt{RouterFunction<ServerResponse>}, а обработчики --- через функции \texttt{ServerRequest $\to$ ServerResponse}. Полностью отсутствуют аннотации маршрутизации.
+
+Ключевое отличие от \texttt{@RestController} --- в способе композиции маршрутов. Вместо распределения маршрутов по аннотациям на методах, все маршруты определяются в одном месте (\texttt{PaymentRouter}) через цепочку вызовов \texttt{.GET()}, \texttt{.POST()} и т.\,д. Обработчики (\texttt{PaymentHandler}) --- это обычные компоненты Spring, не наследующие от каких-либо контроллерных классов. Такой подход обеспечивает лучшую тестируемость отдельных обработчиков в изоляции.
+
+Идемпотентность POST обеспечивается тем же \texttt{IdempotencyFilter}, что и для \texttt{@RestController}, поскольку фильтры работают на уровне Servlet API, до маршрутизации запроса.
+
+\subsubsection{Spring Data REST}
+
+Автоматическая генерация CRUD-эндпоинтов из JPA-репозитория~\cite{spring-data-rest-guide}. Контроллер не пишется вручную --- достаточно аннотировать репозиторий \texttt{@RepositoryRestResource}. Spring Data REST автоматически создаёт все CRUD-операции, поддерживает HATEOAS (Hypermedia As The Engine Of Application State), генерирует HAL-формат ответов и предоставляет HAL Explorer для интерактивного исследования API.
+
+Идемпотентность обеспечивается встроенными механизмами:
+\begin{itemize}
+    \item \texttt{@Version} (optimistic locking) --- Hibernate проверяет версию при каждом UPDATE, Spring Data REST генерирует ETag из значения версии и поддерживает заголовки \texttt{If-Match} и \texttt{If-None-Match};
+    \item UNIQUE constraints на уровне базы данных предотвращают создание дубликатов;
+    \item \texttt{@RepositoryEventHandler} позволяет добавить бизнес-логику через обработчики событий (\texttt{HandleBeforeCreate}, \texttt{HandleBeforeSave}).
+\end{itemize}
+
+\subsection{Средства тестирования}
+
+\begin{itemize}
+    \item \textbf{JUnit 5} --- фреймворк модульного тестирования, поддерживающий параметризованные тесты, вложенные классы и расширения~\cite{beck2002test}.
+    \item \textbf{Spring Boot Test} --- интеграционное тестирование Spring-приложений с автоконфигурацией контекста~\cite{spring-boot-testing}.
+    \item \textbf{MockMvc} --- тестирование HTTP-запросов без запуска реального HTTP-сервера, с полной поддержкой фильтров и маршрутизации.
+    \item \textbf{Testcontainers} --- библиотека для запуска Docker-контейнеров в тестах. Используется singleton-паттерн: один контейнер PostgreSQL запускается при старте первого теста и переиспользуется всеми последующими~\cite{testcontainers}.
+    \item \textbf{Spring Profiles} --- переключение конфигурации для тестирования. Профиль \texttt{test} включает идемпотентность, профиль \texttt{test-non-idempotent} отключает её, что позволяет запускать один и тот же набор тестов в двух режимах.
+\end{itemize}

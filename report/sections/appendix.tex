@@ -1,0 +1,129 @@
+\appendix
+\section*{Приложение А. Ключевые фрагменты кода}
+\addcontentsline{toc}{section}{Приложение А. Ключевые фрагменты кода}
+
+\subsection*{А.1. IdempotencyFilter (фильтр проверки идемпотентности)}
+
+\begin{lstlisting}[caption={IdempotencyFilter.java --- HTTP-фильтр идемпотентности}]
+public class IdempotencyFilter extends OncePerRequestFilter {
+
+    public static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+    private final IdempotencyService idempotencyService;
+    private final IdempotencyProperties properties;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if (!properties.isEnabled()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        String key = request.getHeader(IDEMPOTENCY_KEY_HEADER);
+        if (key == null || key.isBlank()) {
+            response.setStatus(400);
+            response.getWriter().write("{\"error\":\"Idempotency-Key required\"}");
+            return;
+        }
+        var existing = idempotencyService.findByKey(key);
+        if (existing.isPresent() && existing.get().getResponseStatus() != null) {
+            var cached = existing.get();
+            response.setStatus(cached.getResponseStatus());
+            response.getWriter().write(cached.getResponseBody());
+            return;
+        }
+        idempotencyService.registerKey(key, request.getMethod(), request.getRequestURI());
+        ContentCachingResponseWrapper wrapper = new ContentCachingResponseWrapper(response);
+        filterChain.doFilter(request, wrapper);
+        String body = new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+        idempotencyService.saveResponse(key, wrapper.getStatus(), body);
+        wrapper.copyBodyToResponse();
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.2. OrderController (@RestController)}
+
+\begin{lstlisting}[caption={OrderController.java --- аннотационный контроллер}]
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderService orderService;
+
+    @GetMapping
+    public List<Order> list() { return orderService.findAll(); }
+
+    @PostMapping
+    public ResponseEntity<Order> create(@Valid @RequestBody OrderDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(dto));
+    }
+
+    @PutMapping("/{id}")
+    public Order update(@PathVariable UUID id, @Valid @RequestBody OrderDto dto) {
+        return orderService.update(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) { orderService.delete(id); }
+}
+\end{lstlisting}
+
+\subsection*{А.3. PaymentRouter (Functional Endpoints)}
+
+\begin{lstlisting}[caption={PaymentRouter.java --- функциональная маршрутизация}]
+@Configuration
+public class PaymentRouter {
+    @Bean
+    public RouterFunction<ServerResponse> paymentRoutes(PaymentHandler handler) {
+        return RouterFunctions.route()
+            .path("/api/payments", builder -> builder
+                .GET("", accept(APPLICATION_JSON), handler::list)
+                .GET("/{id}", accept(APPLICATION_JSON), handler::getById)
+                .POST("", contentType(APPLICATION_JSON), handler::create)
+            ).build();
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.4. ProductRepository (Spring Data REST)}
+
+\begin{lstlisting}[caption={ProductRepository.java --- автогенерация REST API}]
+@RepositoryRestResource(collectionResourceRel = "products", path = "products")
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    Optional<Product> findBySku(String sku);
+}
+\end{lstlisting}
+
+\subsection*{А.5. Пример теста идемпотентности}
+
+\begin{lstlisting}[caption={Тест: повторный POST с Idempotency-Key}]
+@Test
+@DisplayName("POST with same Idempotency-Key twice - only one order created")
+void postWithSameIdempotencyKey_shouldReturnCachedResponse() throws Exception {
+    var dto = new OrderDto("Laptop", new BigDecimal("89999.99"), null);
+    String body = objectMapper.writeValueAsString(dto);
+    String key = UUID.randomUUID().toString();
+
+    // First request - creates order
+    mockMvc.perform(post("/api/orders")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Idempotency-Key", key)
+            .content(body))
+        .andExpect(status().isCreated());
+
+    // Second request with same key - returns cached response
+    mockMvc.perform(post("/api/orders")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Idempotency-Key", key)
+            .content(body))
+        .andExpect(status().isCreated());
+
+    assertEquals(1, orderRepository.count(),
+        "Duplicate POST must not create a second order");
+}
+\end{lstlisting}

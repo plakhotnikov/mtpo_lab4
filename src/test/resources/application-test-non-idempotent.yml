@@ -1,0 +1,7 @@
+app:
+  idempotency:
+    enabled: false
+
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration-non-idempotent
