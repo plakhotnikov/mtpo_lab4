@@ -1,0 +1,425 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{helland2012idempotence}{inproceedings}{}{}
+      \name{author}{1}{}{%
+        {{hash=62bbcd3779bce374ff277d661656044b}{%
+           family={Helland},
+           familyi={H\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{62bbcd3779bce374ff277d661656044b}
+      \strng{fullhash}{62bbcd3779bce374ff277d661656044b}
+      \strng{fullhashraw}{62bbcd3779bce374ff277d661656044b}
+      \strng{bibnamehash}{62bbcd3779bce374ff277d661656044b}
+      \strng{authorbibnamehash}{62bbcd3779bce374ff277d661656044b}
+      \strng{authornamehash}{62bbcd3779bce374ff277d661656044b}
+      \strng{authorfullhash}{62bbcd3779bce374ff277d661656044b}
+      \strng{authorfullhashraw}{62bbcd3779bce374ff277d661656044b}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Communications of the ACM}
+      \field{internalsortvolume}{55}
+      \field{title}{{Idempotence Is Not a Medical Condition}}
+      \field{year}{2012}
+      \field{number}{5}
+      \range{number}{1}
+      \field{pages}{56\bibrangedash 65}
+      \range{pages}{10}
+      \field{volume}{55}
+      \range{volume}{1}
+    \endentry
+    \entry{stripe-idempotency}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=ce7566d1d08cc094b74cf283cf9c56a5}{%
+           family={{Stripe}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{fullhash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{fullhashraw}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{bibnamehash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{authorbibnamehash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{authornamehash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{authorfullhash}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \strng{authorfullhashraw}{ce7566d1d08cc094b74cf283cf9c56a5}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Stripe API Documentation}
+      \field{title}{{Idempotent Requests --- Stripe API}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://stripe.com/docs/api/idempotent_requests
+      \endverb
+      \verb{url}
+      \verb https://stripe.com/docs/api/idempotent_requests
+      \endverb
+    \endentry
+    \entry{rfc9110}{misc}{}{}
+      \name{author}{3}{}{%
+        {{hash=a6155135a306bddfc30cc4f52d1924e6}{%
+           family={Fielding},
+           familyi={F\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod}}}%
+        {{hash=55ac868e62f6d4ea8f9f143c4c584739}{%
+           family={Nottingham},
+           familyi={N\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=225e8f62a72b900586837313fbf16715}{%
+           family={Reschke},
+           familyi={R\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{fullhash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{fullhashraw}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{bibnamehash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{authorbibnamehash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{authornamehash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{authorfullhash}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \strng{authorfullhashraw}{c041f6bbb0d8a8e111b5a59cfd0aee9f}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{RFC 9110}
+      \field{note}{Internet Engineering Task Force}
+      \field{title}{{HTTP Semantics}}
+      \field{year}{2022}
+      \verb{urlraw}
+      \verb https://www.rfc-editor.org/rfc/rfc9110
+      \endverb
+      \verb{url}
+      \verb https://www.rfc-editor.org/rfc/rfc9110
+      \endverb
+    \endentry
+    \entry{spring-guides-rest}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=48f029d1267de7768629e5c3289c443b}{%
+           family={{Spring Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \strng{bibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorbibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \field{extraname}{1}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring Guides}
+      \field{title}{{Building REST services with Spring}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://spring.io/guides/tutorials/rest
+      \endverb
+      \verb{url}
+      \verb https://spring.io/guides/tutorials/rest
+      \endverb
+    \endentry
+    \entry{spring-functional-endpoints}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=b5d823a3a4ddde31921ea888bfd4d056}{%
+           family={{Spring Framework}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{fullhash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{fullhashraw}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{bibnamehash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{authorbibnamehash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{authornamehash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{authorfullhash}{b5d823a3a4ddde31921ea888bfd4d056}
+      \strng{authorfullhashraw}{b5d823a3a4ddde31921ea888bfd4d056}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring Framework Reference Documentation}
+      \field{title}{{Functional Endpoints --- Spring Web MVC}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html
+      \endverb
+      \verb{url}
+      \verb https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html
+      \endverb
+    \endentry
+    \entry{spring-data-rest-guide}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=48f029d1267de7768629e5c3289c443b}{%
+           family={{Spring Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \strng{bibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorbibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \field{extraname}{2}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring Guides}
+      \field{title}{{Accessing JPA Data with REST}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://spring.io/guides/gs/accessing-data-rest
+      \endverb
+      \verb{url}
+      \verb https://spring.io/guides/gs/accessing-data-rest
+      \endverb
+    \endentry
+    \entry{testcontainers}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=d022b6aa96ba262689b887ae8f968ad4}{%
+           family={{AtomicJar}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{fullhash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{fullhashraw}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{bibnamehash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{authorbibnamehash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{authornamehash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{authorfullhash}{d022b6aa96ba262689b887ae8f968ad4}
+      \strng{authorfullhashraw}{d022b6aa96ba262689b887ae8f968ad4}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Официальная документация}
+      \field{title}{{Testcontainers --- Integration testing with real dependencies}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://testcontainers.com/
+      \endverb
+      \verb{url}
+      \verb https://testcontainers.com/
+      \endverb
+    \endentry
+    \entry{ietf-idempotency-key}{misc}{}{}
+      \name{author}{2}{}{%
+        {{hash=0754f0a6f020c705ba8de2a1eab257b6}{%
+           family={Dalal},
+           familyi={D\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+        {{hash=3cfbd79171a5b4525972dc897b31420a}{%
+           family={Jena},
+           familyi={J\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{fullhash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{fullhashraw}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{bibnamehash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{authorbibnamehash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{authornamehash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{authorfullhash}{dfaf2fb21077bd0f171df1236a257269}
+      \strng{authorfullhashraw}{dfaf2fb21077bd0f171df1236a257269}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{IETF Internet-Draft}
+      \field{note}{draft-ietf-httpapi-idempotency-key-header-06}
+      \field{title}{{The Idempotency-Key HTTP Header Field}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/
+      \endverb
+      \verb{url}
+      \verb https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/
+      \endverb
+    \endentry
+    \entry{fowler2002patterns}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=c3035fa4fc8a043ebf2ea4bff39adda1}{%
+           family={Fowler},
+           familyi={F\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley}%
+      }
+      \strng{namehash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{fullhash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{fullhashraw}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{bibnamehash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{authorbibnamehash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{authornamehash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{authorfullhash}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \strng{authorfullhashraw}{c3035fa4fc8a043ebf2ea4bff39adda1}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0321127426}
+      \field{title}{{Patterns of Enterprise Application Architecture}}
+      \field{year}{2002}
+    \endentry
+    \entry{beck2002test}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=cbec72b463c8b189fdc89c789b018733}{%
+           family={Beck},
+           familyi={B\bibinitperiod},
+           given={K.},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley}%
+      }
+      \strng{namehash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{fullhash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{fullhashraw}{cbec72b463c8b189fdc89c789b018733}
+      \strng{bibnamehash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{authorbibnamehash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{authornamehash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{authorfullhash}{cbec72b463c8b189fdc89c789b018733}
+      \strng{authorfullhashraw}{cbec72b463c8b189fdc89c789b018733}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0321146533}
+      \field{title}{{Test Driven Development: By Example}}
+      \field{year}{2002}
+    \endentry
+    \entry{spring-boot-testing}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=48f029d1267de7768629e5c3289c443b}{%
+           family={{Spring Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \strng{bibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorbibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \field{extraname}{3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring Boot Reference Documentation}
+      \field{title}{{Testing in Spring Boot}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.spring.io/spring-boot/reference/testing/index.html
+      \endverb
+      \verb{url}
+      \verb https://docs.spring.io/spring-boot/reference/testing/index.html
+      \endverb
+    \endentry
+    \entry{richardson2013restful}{book}{}{}
+      \name{author}{3}{}{%
+        {{hash=cb9cab22331774a60933f9c9f99fc4cc}{%
+           family={Richardson},
+           familyi={R\bibinitperiod},
+           given={L.},
+           giveni={L\bibinitperiod}}}%
+        {{hash=e6ff07bcdaa8d90d8560c0364a8ea1eb}{%
+           family={Amundsen},
+           familyi={A\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c3e9cecb7723173f7a350472dcda9617}{%
+           family={Ruby},
+           familyi={R\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {O'Reilly Media}%
+      }
+      \strng{namehash}{26a98f19033a095202c69683343a78d1}
+      \strng{fullhash}{26a98f19033a095202c69683343a78d1}
+      \strng{fullhashraw}{26a98f19033a095202c69683343a78d1}
+      \strng{bibnamehash}{26a98f19033a095202c69683343a78d1}
+      \strng{authorbibnamehash}{26a98f19033a095202c69683343a78d1}
+      \strng{authornamehash}{26a98f19033a095202c69683343a78d1}
+      \strng{authorfullhash}{26a98f19033a095202c69683343a78d1}
+      \strng{authorfullhashraw}{26a98f19033a095202c69683343a78d1}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-1449358068}
+      \field{title}{{RESTful Web APIs}}
+      \field{year}{2013}
+    \endentry
+    \entry{kleppmann2017designing}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=a3a7a610c60a10426d79a474eb90561a}{%
+           family={Kleppmann},
+           familyi={K\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {O'Reilly Media}%
+      }
+      \strng{namehash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{fullhash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{fullhashraw}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{bibnamehash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{authorbibnamehash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{authornamehash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{authorfullhash}{a3a7a610c60a10426d79a474eb90561a}
+      \strng{authorfullhashraw}{a3a7a610c60a10426d79a474eb90561a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-1449373320}
+      \field{title}{{Designing Data-Intensive Applications}}
+      \field{year}{2017}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

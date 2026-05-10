@@ -9,11 +9,11 @@ import java.math.BigDecimal;
  * DTO для создания/обновления заказа.
  */
 public record OrderDto(
-        @NotBlank(message = "Описание заказа обязательно")
+        @NotBlank(message = "Description is required")
         String description,
 
-        @NotNull(message = "Сумма заказа обязательна")
-        @DecimalMin(value = "0.01", message = "Сумма должна быть положительной")
+        @NotNull(message = "Amount is required")
+        @DecimalMin(value = "0.01", message = "Amount must be positive")
         BigDecimal amount,
 
         OrderStatus status

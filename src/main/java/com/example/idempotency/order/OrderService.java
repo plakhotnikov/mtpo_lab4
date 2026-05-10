@@ -56,7 +56,7 @@ public class OrderService {
 
     public static class OrderNotFoundException extends RuntimeException {
         public OrderNotFoundException(UUID id) {
-            super("Заказ не найден: " + id);
+            super("Order not found: " + id);
         }
     }
 }

@@ -62,7 +62,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write(
-                    "{\"error\":\"Заголовок Idempotency-Key обязателен для POST-запросов\"}");
+                    "{\"error\":\"Idempotency-Key header is required for POST requests\"}");
             return;
         }
 
@@ -84,7 +84,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.CONFLICT.value());
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write(
-                    "{\"error\":\"Запрос с данным ключом уже обрабатывается\"}");
+                    "{\"error\":\"Request with this key is already being processed\"}");
             return;
         }
 
@@ -96,7 +96,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.CONFLICT.value());
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write(
-                    "{\"error\":\"Запрос с данным ключом уже обрабатывается\"}");
+                    "{\"error\":\"Request with this key is already being processed\"}");
             return;
         }
 

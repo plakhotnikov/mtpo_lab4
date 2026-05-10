@@ -43,7 +43,7 @@ public class PaymentService {
 
     public static class PaymentNotFoundException extends RuntimeException {
         public PaymentNotFoundException(UUID id) {
-            super("Платёж не найден: " + id);
+            super("Payment not found: " + id);
         }
     }
 }

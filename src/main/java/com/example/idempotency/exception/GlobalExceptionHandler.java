@@ -35,14 +35,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException e) {
-        log.warn("Нарушение ограничения целостности: {}", e.getMostSpecificCause().getMessage());
-        return buildError(HttpStatus.CONFLICT, "Дублирование данных: ресурс уже существует");
+        log.warn("Data integrity violation: {}", e.getMostSpecificCause().getMessage());
+        return buildError(HttpStatus.CONFLICT, "Duplicate resource");
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, Object>> handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
-        log.warn("Конфликт версий (optimistic locking): {}", e.getMessage());
-        return buildError(HttpStatus.CONFLICT, "Конфликт версий: ресурс был изменён другим запросом");
+        log.warn("Optimistic locking conflict: {}", e.getMessage());
+        return buildError(HttpStatus.CONFLICT, "Version conflict: resource was modified by another request");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         var firstError = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                .orElse("Ошибка валидации");
+                .orElse("Validation error");
         return buildError(HttpStatus.BAD_REQUEST, firstError);
     }
 
