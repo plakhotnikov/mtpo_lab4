@@ -17,7 +17,7 @@ import static org.springframework.web.servlet.function.RequestPredicates.*;
  * Это кардинально отличается от @RestController:
  * - Нет аннотаций маршрутизации
  * - Композиция маршрутов через функциональные комбинаторы
- * - Обработчики — чистые функции ServerRequest → ServerResponse
+ * - Обработчики - чистые функции ServerRequest -> ServerResponse
  *
  * @see <a href="https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html">
  *     Spring Framework: Functional Endpoints</a>

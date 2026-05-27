@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Демонстрационный скрипт: Тестирование идемпотентности REST API
-# Лабораторная работа №4 — Плахотников В.А., гр. 5130903/30303
+# Лабораторная работа №4 - Плахотников В.А., гр. 5130903/30303
 # =============================================================================
 
 BASE_URL="http://localhost:8080"
@@ -141,9 +141,9 @@ done
 pause
 
 # =============================================================================
-# СЦЕНАРИЙ 1: @RestController — Idempotency-Key
+# СЦЕНАРИЙ 1: @RestController - Idempotency-Key
 # =============================================================================
-header "СЦЕНАРИЙ 1: @RestController (Orders) — Idempotency-Key"
+header "СЦЕНАРИЙ 1: @RestController (Orders) - Idempotency-Key"
 
 info "Тип контроллера: аннотационный @RestController"
 info "Домен: Заказы (/api/orders)"
@@ -160,7 +160,7 @@ do_curl "POST /api/orders (без Idempotency-Key)" \
   -d '{"description":"Test without key","amount":100.00}'
 
 if [ "$LAST_STATUS" = "400" ]; then
-    success "Запрос отклонён — ключ обязателен для POST"
+    success "Запрос отклонён - ключ обязателен для POST"
 else
     fail "Ожидался 400, получен $LAST_STATUS"
 fi
@@ -204,7 +204,7 @@ ORDER_ID_2=$(echo "$LAST_BODY" | python3 -c "import sys,json; print(json.load(sy
 
 if [ "$LAST_STATUS" = "201" ] && [ "$ORDER_ID" = "$ORDER_ID_2" ]; then
     success "Кэшированный ответ! Тот же ID=$ORDER_ID_2"
-    success "Заказ НЕ дублирован — идемпотентность работает"
+    success "Заказ НЕ дублирован - идемпотентность работает"
 else
     fail "Неожиданный результат"
 fi
@@ -222,15 +222,15 @@ COUNT=$(echo "$LAST_BODY" | EXPECTED_DESC="$EXPECTED_DESC" python3 -c "import sy
 info "Заказов с описанием '$EXPECTED_DESC': $COUNT"
 
 if [ "$COUNT" = "1" ]; then
-    success "Ровно один заказ — дубликат не создан!"
+    success "Ровно один заказ - дубликат не создан!"
 else
-    fail "Найдено $COUNT заказов — дубликат!"
+    fail "Найдено $COUNT заказов - дубликат!"
 fi
 
 pause
 
 # --- 1.5 PUT идемпотентен ---
-subheader "1.5. PUT /api/orders/{id} — естественная идемпотентность"
+subheader "1.5. PUT /api/orders/{id} - естественная идемпотентность"
 info "Дважды обновляем заказ одними и теми же данными"
 
 if [ -n "$ORDER_ID" ]; then
@@ -247,7 +247,7 @@ if [ -n "$ORDER_ID" ]; then
     RESP2="$LAST_BODY"
 
     if [ "$RESP1" = "$RESP2" ]; then
-        success "Оба PUT вернули одинаковый результат — PUT идемпотентен"
+        success "Оба PUT вернули одинаковый результат - PUT идемпотентен"
     else
         fail "Ответы отличаются!"
     fi
@@ -256,7 +256,7 @@ fi
 pause
 
 # --- 1.6 DELETE идемпотентен ---
-subheader "1.6. DELETE /api/orders/{id} — идемпотентность удаления"
+subheader "1.6. DELETE /api/orders/{id} - идемпотентность удаления"
 info "Удаляем заказ дважды"
 
 if [ -n "$ORDER_ID" ]; then
@@ -276,9 +276,9 @@ fi
 pause
 
 # =============================================================================
-# СЦЕНАРИЙ 2: Functional Endpoints — Платежи
+# СЦЕНАРИЙ 2: Functional Endpoints - Платежи
 # =============================================================================
-header "СЦЕНАРИЙ 2: Functional Endpoints (Payments) — Retry Safety"
+header "СЦЕНАРИЙ 2: Functional Endpoints (Payments) - Retry Safety"
 
 info "Тип контроллера: RouterFunction (WebMvc.fn)"
 info "Домен: Платежи (/api/payments)"
@@ -327,15 +327,15 @@ info "Платежей к заказу $PAY_ORDER_ID: $PAY_COUNT"
 if [ "$PAY_COUNT" = "1" ]; then
     success "Один платёж! Тройное списание предотвращено"
 else
-    fail "Создано $PAY_COUNT платежей — тройное списание!"
+    fail "Создано $PAY_COUNT платежей - тройное списание!"
 fi
 
 pause
 
 # =============================================================================
-# СЦЕНАРИЙ 3: Spring Data REST — Optimistic Locking
+# СЦЕНАРИЙ 3: Spring Data REST - Optimistic Locking
 # =============================================================================
-header "СЦЕНАРИЙ 3: Spring Data REST (Products) — Optimistic Locking"
+header "СЦЕНАРИЙ 3: Spring Data REST (Products) - Optimistic Locking"
 
 info "Тип контроллера: автогенерируемый из @RepositoryRestResource"
 info "Домен: Товары (/api/products)"
@@ -373,7 +373,7 @@ do_curl "POST /api/products (дубликат SKU=$DEMO_SKU)" \
   -d "{\"sku\":\"$DEMO_SKU\",\"name\":\"Duplicate\",\"price\":200.00,\"quantity\":5}"
 
 if [ "$LAST_STATUS" = "409" ]; then
-    success "409 Conflict — UNIQUE constraint предотвратил дубликат"
+    success "409 Conflict - UNIQUE constraint предотвратил дубликат"
 else
     fail "Ожидался 409, получен $LAST_STATUS"
 fi
@@ -381,7 +381,7 @@ fi
 pause
 
 # --- 3.3 Optimistic Locking (ETag) ---
-subheader "3.3. Optimistic Locking — конфликт версий (ETag)"
+subheader "3.3. Optimistic Locking - конфликт версий (ETag)"
 info "Создаём товар, получаем ETag, делаем два конкурентных PUT"
 
 OL_SKU="LOCK-$(date +%s)"
@@ -426,9 +426,9 @@ fi
 pause
 
 # =============================================================================
-# СЦЕНАРИЙ 4: GET — стабильность ответов
+# СЦЕНАРИЙ 4: GET - стабильность ответов
 # =============================================================================
-header "СЦЕНАРИЙ 4: GET — идемпотентность и стабильность"
+header "СЦЕНАРИЙ 4: GET - идемпотентность и стабильность"
 
 subheader "4.1. Три последовательных GET /api/orders"
 info "Все три ответа должны быть идентичны"
@@ -445,7 +445,7 @@ RESP_C="$LAST_BODY"
 echo ""
 if [ "$RESP_A" = "$RESP_B" ] && [ "$RESP_B" = "$RESP_C" ]; then
     success "Все 3 GET-запроса вернули идентичный результат"
-    info "GET — safe и идемпотентный метод (RFC 9110)"
+    info "GET - safe и идемпотентный метод (RFC 9110)"
 else
     fail "Ответы отличаются!"
 fi
@@ -462,8 +462,8 @@ echo ""
 echo "  1. Idempotency-Key предотвращает дублирование при retry (Orders, Payments)"
 echo "  2. Один IdempotencyFilter работает для @RestController и RouterFunction"
 echo "  3. Spring Data REST: @Version + ETag защищает от lost update"
-echo "  4. UNIQUE constraints — последний рубеж защиты от дубликатов"
-echo "  5. GET/PUT/DELETE — идемпотентны по определению (RFC 9110)"
+echo "  4. UNIQUE constraints - последний рубеж защиты от дубликатов"
+echo "  5. GET/PUT/DELETE - идемпотентны по определению (RFC 9110)"
 echo ""
 success "Спасибо за внимание!"
 echo ""

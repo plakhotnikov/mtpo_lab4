@@ -2,27 +2,30 @@
 
 \subsection{Математическая постановка задачи идемпотентности}
 
-\textbf{Определение.} Функция $f: X \to X$ называется \emph{идемпотентной}, если для любого $x \in X$:
+\textbf{Алгебраическое определение}~\cite[\S~I.1]{lang2002algebra}\textbf{.} Оператор $f \colon X \to X$ называется \emph{идемпотентным}, если выполняется
 \begin{equation}
-    f(f(x)) = f(x)
+    f \circ f = f, \quad \text{т.\,е.}\ f(f(x)) = f(x) \quad \forall x \in X.
 \end{equation}
 
-В контексте HTTP API определим:
+\textbf{Идемпотентность HTTP-метода}~\cite[\S~9.2.2]{rfc9110}\textbf{.} HTTP-метод считается \emph{идемпотентным}, если результирующий эффект на сервере от многократного выполнения идентичных запросов с этим методом совпадает с эффектом от однократного выполнения такого запроса\footnote{Дословно (RFC 9110, \S~9.2.2): <<A request method is considered ``idempotent'' if the intended effect on the server of multiple identical requests with that method is the same as the effect for a single such request>>.}. Эквивалентную формулировку даёт П.~Хелланд~\cite{helland2012idempotence}: <<multiple invocations are identical to exactly one invocation>>.
+
+\textbf{Формализация.} Два приведённых выше определения (алгебраическое и текстовое HTTP) объединяются, если рассматривать обработку запроса как оператор над состоянием сервера. Введём обозначения:
 \begin{itemize}
     \item $S$ --- множество состояний системы (совокупность данных в БД);
     \item $R$ --- множество HTTP-запросов;
-    \item $O: S \times R \to S \times \text{Response}$ --- операция обработки запроса;
+    \item $O \colon S \times R \to S \times \text{Response}$ --- операция обработки запроса;
     \item $\pi_1(O(s, r))$ --- проекция на новое состояние.
 \end{itemize}
 
-\textbf{Определение (идемпотентность HTTP-метода).} HTTP-метод $m$ называется идемпотентным, если для любого состояния $s \in S$ и запроса $r$ с методом $m$:
+Применяя алгебраическое определение к оператору $s \mapsto \pi_1(O(s, r))$ при фиксированном $r$, получаем формальный критерий: HTTP-метод $m$ идемпотентен тогда и только тогда, когда для любого состояния $s \in S$ и запроса $r$ с методом $m$:
 \begin{equation}
-    \pi_1(O^n(s, r)) = \pi_1(O(s, r)), \quad \forall n \geq 1
+    \pi_1(O^n(s, r)) = \pi_1(O(s, r)), \quad \forall n \geq 1,
 \end{equation}
 где $O^n$ обозначает $n$-кратное применение операции, при этом каждое следующее применение использует состояние, полученное на предыдущем шаге:
 \begin{equation}
-    O^1(s, r) = O(s, r), \quad O^{n+1}(s, r) = O(\pi_1(O^n(s, r)),\; r)
+    O^1(s, r) = O(s, r), \quad O^{n+1}(s, r) = O(\pi_1(O^n(s, r)),\; r).
 \end{equation}
+Эта формула --- авторская формализация в рамках данной работы; в первоисточниках~\cite{rfc9110, helland2012idempotence} идемпотентность HTTP формулируется словесно, поскольку их жанр (стандарт, обзорная статья) формальных конструкций над состоянием не предполагает.
 
 \textbf{Свойства.} Согласно RFC 9110~\cite{rfc9110}:
 \begin{itemize}
@@ -203,27 +206,30 @@ PATCH   & Нет & Нет & Да  & Частичное обновление ре
 \end{tabularx}
 \end{table}
 
-\subsection{Типы организации контроллеров в Spring}
+\subsection{Типы организации контроллеров в Spring и Java-экосистеме}
 
-В данной работе используются три кардинально различных подхода к организации REST-контроллеров в Spring Framework (таблица~\ref{tab:controller-types}).
+В данной работе используются \textbf{шесть кардинально различных подходов} к организации серверных контроллеров, охватывающих четыре транспортных протокола (таблица~\ref{tab:controller-types}). Первые три --- разные стили HTTP/REST в Spring MVC; следующие три --- принципиально иные протоколы (SOAP, gRPC, GraphQL).
 
 \begin{table}[H]
 \centering
-\caption{Сравнение типов контроллеров Spring}
+\caption{Сравнение шести типов контроллеров}
 \label{tab:controller-types}
-\small
-\begin{tabularx}{\textwidth}{@{}l X X X@{}}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}l l X X@{}}
 \toprule
-\textbf{Характеристика} & \textbf{@RestController} & \textbf{Functional Endpoints} & \textbf{Spring Data REST} \\
+\textbf{Тип} & \textbf{Транспорт} & \textbf{Маршрутизация / обработчик} & \textbf{Механизм идемпотентности} \\
 \midrule
-Стиль & Аннотационный & Функциональный & Автогенерация \\
-Маршрутизация & @GetMapping, @PostMapping & RouterFunction & Автоматическая \\
-Обработчик & Метод контроллера & HandlerFunction & Репозиторий \\
-Бизнес-логика & В Service-слое & В Handler-классе & EventHandler \\
-Канонический пример & Spring Guides REST & Spring Framework docs & Spring Data REST Guide \\
+@RestController              & HTTP/REST (JSON) & Аннотации @GetMapping, метод контроллера                & Idempotency-Key (HTTP-фильтр) \\
+Functional Endpoints         & HTTP/REST (JSON) & RouterFunction $\to$ HandlerFunction                    & Idempotency-Key (тот же фильтр) \\
+Spring Data REST             & HTTP/HAL+JSON    & Автогенерация из @RepositoryRestResource                & @Version + ETag \\
+Spring-WS @Endpoint          & SOAP / HTTP+XML  & @PayloadRoot, MessageDispatcherServlet                  & Idempotency-Key (тот же фильтр) \\
+GraphQL @Controller          & GraphQL / HTTP   & @QueryMapping / @MutationMapping, single endpoint       & Idempotency-Key (тот же фильтр) \\
+@GrpcService                 & gRPC / HTTP/2    & Generated stub из .proto                                & ServerInterceptor \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Принципиально, что несмотря на разнородность транспортов, четыре из шести типов (\texttt{@RestController}, Functional, Spring-WS, GraphQL) используют \emph{один и тот же бин} \texttt{IdempotencyFilter}, поскольку все четыре работают поверх Servlet API. gRPC использует протокол HTTP/2 с бинарным protobuf и не проходит через сервлет-цепочку; для него реализован отдельный \texttt{GrpcIdempotencyInterceptor}, делегирующий, однако, \emph{тому же} бину \texttt{IdempotencyService}. Spring Data REST интегрируется через слой данных (\texttt{@Version} и UNIQUE constraints), а не через заголовок.
 
 \subsubsection{@RestController (аннотационный подход)}
 
@@ -249,6 +255,58 @@ PATCH   & Нет & Нет & Да  & Частичное обновление ре
     \item UNIQUE constraints на уровне базы данных предотвращают создание дубликатов;
     \item \texttt{@RepositoryEventHandler} позволяет добавить бизнес-логику через обработчики событий (\texttt{HandleBeforeCreate}, \texttt{HandleBeforeSave}).
 \end{itemize}
+
+\subsubsection{Spring-WS (SOAP, контракт-первый)}
+\label{subsec:transport-soap}
+
+SOAP --- транспорт-предшественник REST, до сих пор широко используемый в enterprise и B2B-интеграциях (банковские шлюзы, государственные сервисы). Spring-WS~\cite{spring-ws} реализует контракт-первый подход: разработчик описывает XSD-схему сообщений, фреймворк автоматически генерирует WSDL и маршрутизирует входящие SOAP-конверты к Java-методам по namespace+localPart.
+
+В нашей реализации (домен \texttt{shipments}) сервлет \texttt{MessageDispatcherServlet} зарегистрирован под URL-паттерном \texttt{/api/soap/*}. Контракт описан в \texttt{xsd/shipments.xsd} с типами \texttt{createShipmentRequest}, \texttt{createShipmentResponse} и т.\,д. Эндпоинт \texttt{ShipmentEndpoint} аннотирован \texttt{@Endpoint}, методы --- \texttt{@PayloadRoot(namespace=..., localPart=...)} и \texttt{@ResponsePayload}; обработчик принимает \texttt{DOMSource} и возвращает \texttt{DOMSource} с ответом.
+
+Ключевой момент с точки зрения идемпотентности: \texttt{MessageDispatcherServlet} --- это обычный \texttt{HttpServlet}, поэтому \emph{тот же бин} \texttt{IdempotencyFilter} (зарегистрированный в \texttt{WebMvcConfig} с URL-паттерном \texttt{/api/soap/*}) перехватывает SOAP POST-запросы по заголовку \texttt{Idempotency-Key} и кеширует SOAP-envelope ответа целиком. Это работает только при условии, что фильтр транспорт-агностичен --- то есть сохраняет реальный Content-Type ответа (\texttt{text/xml}) и реплеит его без подмены на \texttt{application/json}. Соответствующая модификация фильтра описана в \S\,\ref{subsec:transport-agnostic-snapshot}.
+
+\subsubsection{gRPC (HTTP/2 + protobuf)}
+\label{subsec:transport-grpc}
+
+gRPC~\cite{grpc-java} принципиально отличается от HTTP/REST: транспорт --- HTTP/2 с бинарными protobuf-сообщениями~\cite{protobuf3}, контракт описывается в файле \texttt{.proto}, серверные стабы генерируются плагином \texttt{protoc-gen-grpc-java}. Сервлет-фильтр здесь \emph{неприменим} --- запросы не проходят через \texttt{ServletFilterChain}.
+
+В нашей реализации (домен \texttt{notifications}) используется стартер \texttt{grpc-spring-boot-starter}~\cite{grpc-spring-boot}; gRPC-сервис \texttt{NotificationGrpcService} помечен \texttt{@GrpcService}. Для идемпотентности написан \texttt{GrpcIdempotencyInterceptor} (\texttt{@GrpcGlobalServerInterceptor}), который:
+\begin{enumerate}
+    \item Извлекает \texttt{idempotency-key} из \texttt{Metadata} вызова (gRPC-эквивалент HTTP-заголовков, lowercase ASCII).
+    \item При повторном вызове с тем же ключом достаёт сохранённые байты ответа из \texttt{idempotency\_keys.response\_body\_bytes} и парсит их через \texttt{call.getMethodDescriptor().getResponseMarshaller().parse(...)}. Это делает перехватчик \emph{полностью generic}: он не знает proto-типы и работает с любым unary-методом любого gRPC-сервиса в приложении.
+    \item При новом вызове регистрирует ключ через тот же \texttt{IdempotencyService}, оборачивает call в \texttt{ForwardingServerCall.SimpleForwardingServerCall}, перехватывает \texttt{sendMessage(RespT)}, сериализует ответ через тот же marshaller (\texttt{InputStream.readAllBytes()}) и сохраняет байты в БД (\texttt{response\_kind=BINARY}).
+\end{enumerate}
+
+Таким образом, gRPC-перехватчик переиспользует \emph{тот же бин} \texttt{IdempotencyService} и \emph{ту же таблицу} \texttt{idempotency\_keys}, что и HTTP-фильтр; различается только способ перехвата сообщения и кодировка тела (бинарный protobuf в столбце BYTEA вместо текстового JSON/XML в TEXT).
+
+\subsubsection{GraphQL (single endpoint, schema-first)}
+\label{subsec:transport-graphql}
+
+GraphQL~\cite{graphql-spec} --- современный транспорт с одним эндпоинтом (\texttt{POST /graphql}), декларативной схемой типов и клиент-управляемой выборкой полей. В Spring Boot интегрируется через \texttt{spring-boot-starter-graphql}~\cite{spring-graphql}: схема описывается в \texttt{schema.graphqls}, методы контроллера аннотируются \texttt{@QueryMapping} и \texttt{@MutationMapping}.
+
+В нашей реализации (домен \texttt{inventories}) определены два запроса (\texttt{inventories}, \texttt{inventory(id)}) и одна мутация (\texttt{reserveInventory}). Идемпотентность мутаций обеспечивается \emph{тем же} \texttt{IdempotencyFilter}: URL-паттерн \texttt{/graphql} добавлен в фильтр, и при мутации (всегда POST) требуется заголовок \texttt{Idempotency-Key}. Запросы (Query) могут отправляться через HTTP GET --- фильтр пропускает все не-POST, что согласуется с safe-семантикой запросов и снимает требование ключа для них.
+
+Особенность GraphQL: даже при логической ошибке (валидация схемы, отсутствие поля) сервер возвращает HTTP 200 с массивом \texttt{errors[]} в JSON-теле. Фильтр кеширует все 2xx-ответы по умолчанию --- это соответствует политике IETF Idempotency-Key draft~\cite{ietf-idempotency-key}: клиент, повторяющий запрос с тем же ключом, явно хочет тот же \emph{исход}, включая ошибку.
+
+\subsection{Транспорт-агностичный снэпшот ответа}
+\label{subsec:transport-agnostic-snapshot}
+
+Исходный \texttt{IdempotencyFilter} хранил кешированный ответ как пару $\langle \text{status}, \text{body} \rangle$ и при реплее устанавливал жёстко зафиксированный \texttt{Content-Type: application/json}. Это было корректно для исходных JSON-эндпоинтов, но \textbf{нарушает транспорт-агностичность}: при добавлении SOAP-эндпоинта реплей вернул бы XML-байты с заголовком \texttt{application/json}, что сломало бы парсинг на стороне клиента. Для gRPC задача ещё сложнее: бинарный protobuf принципиально не вписывается в \texttt{TEXT}-колонку.
+
+Чтобы сделать механизм идемпотентности по-настоящему транспорт-агностичным, кешированный ответ был доопределён как \emph{полный снэпшот}:
+\begin{equation}
+\text{Snapshot} = \langle \text{status},\; \text{contentType},\; \text{kind},\; \text{body} \rangle
+\end{equation}
+где $\text{kind} \in \{\text{TEXT}, \text{BINARY}\}$ --- дискриминатор кодировки тела (текст в \texttt{response\_body TEXT} либо байты в \texttt{response\_body\_bytes BYTEA}), а $\text{contentType}$ восстанавливается из заголовка фактического ответа.
+
+\textbf{Изменения}, реализованные миграцией V4 и доработкой фильтра:
+\begin{itemize}
+    \item Таблица \texttt{idempotency\_keys} расширена тремя колонками: \texttt{response\_content\_type VARCHAR(150)}, \texttt{response\_kind VARCHAR(16)}, \texttt{response\_body\_bytes BYTEA}.
+    \item \texttt{IdempotencyService} получил пару методов \texttt{saveTextResponse(\dots)} и \texttt{saveBinaryResponse(\dots)} вместо одного перегруженного.
+    \item \texttt{IdempotencyFilter} после \texttt{filterChain.doFilter} читает реальный Content-Type через \texttt{ContentCachingResponseWrapper.getHeader(HttpHeaders.CONTENT\_TYPE)} (с fallback на \texttt{getContentType()}), а при реплее пишет тело через \texttt{response.getOutputStream()} --- унифицированно по байтам, без перекодирования через \texttt{Writer} (что важно для XML с декларацией кодировки).
+\end{itemize}
+
+После этой модернизации \emph{один и тот же} \texttt{IdempotencyFilter} корректно работает на четырёх HTTP-транспортах (REST-JSON, SOAP-XML, GraphQL-JSON), а \texttt{IdempotencyService} переиспользуется gRPC-перехватчиком для бинарных ответов. Это и есть main архитектурный вклад данной работы.
 
 \subsection{Средства тестирования}
 

@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 /**
  * Хранение ключей идемпотентности в БД.
  * При повторном запросе с тем же ключом возвращается кэшированный ответ.
+ *
+ * Поля response_content_type / response_kind / response_body_bytes расширяют
+ * исходный «JSON-only» дизайн до транспорт-агностичного снэпшота ответа,
+ * пригодного для SOAP (text/xml) и gRPC (бинарный protobuf).
  */
 @Entity
 @Table(name = "idempotency_keys")
@@ -29,6 +33,18 @@ public class IdempotencyKeyEntity {
 
     @Column(name = "response_body", columnDefinition = "TEXT")
     private String responseBody;
+
+    @Column(name = "response_content_type", length = 150)
+    private String responseContentType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "response_kind", nullable = false, length = 16)
+    private ResponseKind responseKind = ResponseKind.TEXT;
+
+    // BYTEA в PostgreSQL - без @Lob (иначе Hibernate ожидает OID/Types#BLOB)
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "response_body_bytes", columnDefinition = "BYTEA")
+    private byte[] responseBodyBytes;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -60,6 +76,15 @@ public class IdempotencyKeyEntity {
 
     public String getResponseBody() { return responseBody; }
     public void setResponseBody(String responseBody) { this.responseBody = responseBody; }
+
+    public String getResponseContentType() { return responseContentType; }
+    public void setResponseContentType(String responseContentType) { this.responseContentType = responseContentType; }
+
+    public ResponseKind getResponseKind() { return responseKind; }
+    public void setResponseKind(ResponseKind responseKind) { this.responseKind = responseKind; }
+
+    public byte[] getResponseBodyBytes() { return responseBodyBytes; }
+    public void setResponseBodyBytes(byte[] responseBodyBytes) { this.responseBodyBytes = responseBodyBytes; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getExpiresAt() { return expiresAt; }

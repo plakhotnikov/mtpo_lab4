@@ -27,7 +27,10 @@ mvn spring-boot:run
         \item \texttt{/api/payments} --- платежи (Functional Endpoints)
         \item \texttt{/api/products} --- товары (Spring Data REST)
         \item \texttt{/api/explorer} --- HAL Explorer (Spring Data REST)
+        \item \texttt{/api/soap/} --- отправления (SOAP via Spring-WS, WSDL по \texttt{/api/soap/shipments.wsdl})
+        \item \texttt{/graphql} --- инвентарь (GraphQL via spring-boot-starter-graphql)
     \end{itemize}
+    \item gRPC-сервис уведомлений (\texttt{NotificationService}) поднимается на отдельном порту \texttt{localhost:9090} (HTTP/2, plaintext).
 \end{enumerate}
 
 \subsection{Запуск тестов}
@@ -46,9 +49,9 @@ mvn test -Dtest="NonIdempotentProfileTest"
 
 \textbf{Примечание:} для запуска тестов требуется Docker, так как Testcontainers автоматически запускает PostgreSQL в контейнере.
 
-\subsection{Пример использования API}
+\subsection{Пример использования API (все четыре транспорта)}
 
-Создание заказа с Idempotency-Key:
+Создание заказа через REST (@RestController) с Idempotency-Key:
 \begin{verbatim}
 curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
@@ -56,4 +59,28 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"description": "Ноутбук", "amount": 89999.99}'
 \end{verbatim}
 
-Повторный запрос с тем же ключом вернёт кэшированный ответ (заказ не дублируется).
+Создание отправления через SOAP (Spring-WS):
+\begin{verbatim}
+curl -X POST http://localhost:8080/api/soap/ \
+  -H "Content-Type: text/xml" \
+  -H "Idempotency-Key: soap-key-1" \
+  --data-binary @create-shipment.xml
+\end{verbatim}
+
+Отправка уведомления через gRPC (\texttt{grpcurl}):
+\begin{verbatim}
+grpcurl -plaintext -H "idempotency-key: grpc-key-1" \
+  -d '{"recipient":"user@example.com","message":"Hello"}' \
+  localhost:9090 \
+  com.example.idempotency.grpc.notification.NotificationService/Send
+\end{verbatim}
+
+Резервирование инвентаря через GraphQL:
+\begin{verbatim}
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: gql-key-1" \
+  -d '{"query":"mutation { reserveInventory(input:{itemName:\"X\",quantity:5}) { id } }"}'
+\end{verbatim}
+
+Во всех четырёх случаях повторный запрос с тем же ключом возвращает байт-в-байт идентичный ответ (для gRPC --- идентичные сериализованные protobuf-байты), а в базе данных создаётся ровно одна запись.

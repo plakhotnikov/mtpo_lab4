@@ -15,7 +15,7 @@ import java.util.UUID;
  * Идемпотентность POST обеспечивается через IdempotencyFilter (заголовок Idempotency-Key).
  * PUT идемпотентен по определению HTTP (повторное применение не меняет результат).
  * DELETE идемпотентен: первый вызов удаляет, второй возвращает 404.
- * GET — safe и идемпотентен.
+ * GET - safe и идемпотентен.
  *
  * @see <a href="https://spring.io/guides/tutorials/rest">Spring Guides: REST</a>
  */

@@ -36,7 +36,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @Order(1)
-    @DisplayName("POST дубликата SKU — 409 Conflict (unique constraint)")
+    @DisplayName("POST дубликата SKU - 409 Conflict (unique constraint)")
     void postDuplicateSku_shouldReturn409() throws Exception {
         String productJson = """
                 {
@@ -47,13 +47,13 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
                 }
                 """;
 
-        // Первый POST — успех
+        // Первый POST - успех
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productJson))
                 .andExpect(status().isCreated());
 
-        // Второй POST с тем же SKU — конфликт
+        // Второй POST с тем же SKU - конфликт
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productJson))
@@ -65,7 +65,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @Order(2)
-    @DisplayName("PUT с корректной версией — успешное обновление")
+    @DisplayName("PUT с корректной версией - успешное обновление")
     void putWithCorrectVersion_shouldSucceed() throws Exception {
         var product = productRepository.save(
                 new Product("VER-001", "Товар с версией", new BigDecimal("500.00"), 5));
@@ -95,7 +95,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @Order(3)
-    @DisplayName("Concurrent PUT — optimistic locking предотвращает lost update")
+    @DisplayName("Concurrent PUT - optimistic locking предотвращает lost update")
     void concurrentPut_shouldDetectConflict() throws Exception {
         var product = productRepository.save(
                 new Product("CONC-001", "Конкурентный товар", new BigDecimal("1000.00"), 100));
@@ -116,7 +116,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
                         .content(update1))
                 .andExpect(status().isNoContent());
 
-        // Второй пользователь пытается обновить со старой версией — конфликт
+        // Второй пользователь пытается обновить со старой версией - конфликт
         String update2 = """
                 {
                     "sku": "CONC-001",
@@ -139,7 +139,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @Order(4)
-    @DisplayName("PATCH идемпотентен — повторное применение не меняет состояние")
+    @DisplayName("PATCH идемпотентен - повторное применение не меняет состояние")
     void patchIsIdempotent_shouldNotChangeState() throws Exception {
         var product = productRepository.save(
                 new Product("PATCH-001", "Товар для PATCH", new BigDecimal("300.00"), 50));
@@ -173,7 +173,7 @@ class ProductIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @Order(5)
-    @DisplayName("GET идемпотентен — многократные запросы возвращают одинаковый результат")
+    @DisplayName("GET идемпотентен - многократные запросы возвращают одинаковый результат")
     void getIsIdempotent_shouldReturnConsistentResult() throws Exception {
         var product = productRepository.save(
                 new Product("GET-001", "Стабильный товар", new BigDecimal("999.99"), 42));

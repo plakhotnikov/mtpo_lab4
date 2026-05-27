@@ -517,6 +517,13 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/sansmathaccent/mathkerncmssi9.tfm
+INPUT /Users/admin/Library/texlive/2026/texmf-var/fonts/tfm/lh/lh-t2a/lasx0800.tfm
+INPUT /Users/admin/Library/texlive/2026/texmf-var/fonts/tfm/lh/lh-t2a/lasi0800.tfm
+INPUT /usr/local/texlive/2026/texmf-dist/tex/latex/cyrillic/t2acmtt.fd
+INPUT /usr/local/texlive/2026/texmf-dist/tex/latex/cyrillic/t2acmtt.fd
+INPUT /usr/local/texlive/2026/texmf-dist/tex/latex/cyrillic/t2acmtt.fd
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/lhcyr/lh-t2a/latt0800.tfm
+INPUT /Users/admin/Library/texlive/2026/texmf-var/fonts/tfm/lh/lh-t2a/latt1095.tfm
 OUTPUT presentation.nav
 OUTPUT presentation.toc
 OUTPUT presentation.snm
@@ -538,6 +545,7 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pf
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfsi0800.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfsi1095.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss0600.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss0800.pfb
@@ -545,5 +553,8 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss0900.pf
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss1000.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss1095.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfss1440.pfb
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfsx0800.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfsx0900.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfsx1095.pfb
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sftt0800.pfb
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sftt1095.pfb

@@ -51,7 +51,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(1)
-    @DisplayName("POST платежа с Idempotency-Key дважды — создаётся только один платёж")
+    @DisplayName("POST платежа с Idempotency-Key дважды - создаётся только один платёж")
     void postPaymentWithSameKey_shouldCreateOnlyOne() throws Exception {
         var dto = new PaymentDto(testOrder.getId(), new BigDecimal("5000.00"));
         String body = objectMapper.writeValueAsString(dto);
@@ -77,7 +77,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(2)
-    @DisplayName("POST платежей с разными ключами — создаются два платежа")
+    @DisplayName("POST платежей с разными ключами - создаются два платежа")
     void postPaymentsWithDifferentKeys_shouldCreateTwo() throws Exception {
         var dto = new PaymentDto(testOrder.getId(), new BigDecimal("2500.00"));
         String body = objectMapper.writeValueAsString(dto);
@@ -99,7 +99,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(3)
-    @DisplayName("POST без Idempotency-Key — ошибка 400")
+    @DisplayName("POST без Idempotency-Key - ошибка 400")
     void postWithoutKey_shouldReturn400() throws Exception {
         var dto = new PaymentDto(testOrder.getId(), new BigDecimal("1000.00"));
 
@@ -111,7 +111,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(4)
-    @DisplayName("GET платежа — идемпотентен, возвращает одинаковый результат")
+    @DisplayName("GET платежа - идемпотентен, возвращает одинаковый результат")
     void getPayment_isIdempotent() throws Exception {
         var dto = new PaymentDto(testOrder.getId(), new BigDecimal("3000.00"));
         String result = mockMvc.perform(post("/api/payments")
@@ -123,7 +123,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
         String paymentId = objectMapper.readTree(result).get("id").asText();
 
-        // Три GET — одинаковый результат
+        // Три GET - одинаковый результат
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(get("/api/payments/" + paymentId)
                             .accept(MediaType.APPLICATION_JSON))
@@ -134,7 +134,7 @@ class PaymentIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(5)
-    @DisplayName("Retry после создания — безопасный повтор возвращает тот же результат")
+    @DisplayName("Retry после создания - безопасный повтор возвращает тот же результат")
     void retryAfterCreate_shouldBeSafe() throws Exception {
         var dto = new PaymentDto(testOrder.getId(), new BigDecimal("7500.00"));
         String body = objectMapper.writeValueAsString(dto);

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
  * что кардинально отличается от написания контроллера вручную.
  *
  * Идемпотентность обеспечивается:
- * - @Version (optimistic locking) — предотвращает lost updates при concurrent PUT
- * - UNIQUE constraint на sku — предотвращает создание дубликатов
+ * - @Version (optimistic locking) - предотвращает lost updates при concurrent PUT
+ * - UNIQUE constraint на sku - предотвращает создание дубликатов
  * - ETag автоматически генерируется Spring Data REST из @Version
  *
  * @see <a href="https://docs.spring.io/spring-data/rest/reference/events.html">

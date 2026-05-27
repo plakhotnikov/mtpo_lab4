@@ -16,9 +16,20 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    # Разрешаем переключение между профилями default <-> non-idempotent
+    # без сброса БД: out-of-order пропускает V3 после V4-V7 (на default->non-idempotent),
+    # ignore-migration-patterns "*:missing" разрешает default видеть в history
+    # миграции V3/V8 из non-idempotent, которых нет в его locations.
+    out-of-order: true
+    ignore-migration-patterns: "*:missing"
   data:
     rest:
       base-path: /api
+
+# gRPC сервер (net.devh:grpc-spring-boot-starter)
+grpc:
+  server:
+    port: 9090
 
 # Идемпотентность включена по умолчанию
 app:

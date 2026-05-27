@@ -12,8 +12,13 @@ import org.springframework.context.annotation.Configuration;
 public class WebMvcConfig {
 
     /**
-     * Регистрация фильтра идемпотентности для путей /api/orders и /api/payments.
-     * Spring Data REST (/products) использует @Version, а не заголовок.
+     * Регистрация единого фильтра идемпотентности для всех HTTP-транспортов.
+     *   - /api/orders, /api/payments  - REST (@RestController, Functional Endpoints)
+     *   - /api/soap/*                 - SOAP (Spring-WS MessageDispatcherServlet)
+     *   - /graphql                    - GraphQL (spring-boot-starter-graphql, дефолт)
+     * Spring Data REST (/api/products) использует @Version + ETag, поэтому
+     * сюда не включён. gRPC обслуживается отдельным ServerInterceptor,
+     * но через тот же IdempotencyService.
      */
     @Bean
     public FilterRegistrationBean<IdempotencyFilter> idempotencyFilterRegistration(
@@ -21,7 +26,12 @@ public class WebMvcConfig {
             IdempotencyProperties properties) {
         var registration = new FilterRegistrationBean<IdempotencyFilter>();
         registration.setFilter(new IdempotencyFilter(idempotencyService, properties));
-        registration.addUrlPatterns("/api/orders/*", "/api/orders", "/api/payments/*", "/api/payments");
+        registration.addUrlPatterns(
+                "/api/orders/*", "/api/orders",
+                "/api/payments/*", "/api/payments",
+                "/api/soap/*",
+                "/graphql"
+        );
         registration.setOrder(1);
         return registration;
     }

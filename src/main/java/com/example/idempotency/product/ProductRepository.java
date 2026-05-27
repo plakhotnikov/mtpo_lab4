@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Spring Data REST автоматически создаёт CRUD endpoints для товаров.
  * Это кардинально отличается от @RestController и Functional Endpoints:
- * контроллер не пишется вручную — всё генерируется из репозитория.
+ * контроллер не пишется вручную - всё генерируется из репозитория.
  *
  * @see <a href="https://spring.io/guides/gs/accessing-data-rest">Accessing JPA Data with REST</a>
  */
