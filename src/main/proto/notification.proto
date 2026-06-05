@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package com.example.idempotency.grpc.notification;
+
+option java_multiple_files = true;
+option java_package = "com.example.idempotency.grpc.notification.proto";
+option java_outer_classname = "NotificationProto";
+
+service NotificationService {
+  rpc Send(SendRequest) returns (SendResponse);
+  rpc List(ListRequest) returns (ListResponse);
+}
+
+message SendRequest {
+  string recipient = 1;
+  string message   = 2;
+}
+
+message SendResponse {
+  string id     = 1;
+  string status = 2;
+}
+
+message ListRequest {}
+
+message ListResponse {
+  repeated NotificationItem items = 1;
+}
+
+message NotificationItem {
+  string id        = 1;
+  string recipient = 2;
+  string message   = 3;
+  string status    = 4;
+}

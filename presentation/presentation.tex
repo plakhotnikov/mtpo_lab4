@@ -39,7 +39,7 @@
 
 \floatname{algorithm}{Алгоритм}
 
-\title{Тестирование идемпотентности и повторяемости запросов в REST API\\
+\title{Тестирование идемпотентности и повторяемости запросов в сетевых API\\
 \small по дисциплине <<Методы тестирования программного обеспечения>>}
 \author{Плахотников В.\,А.}
 \institute{СПбПУ, ИКНТ ВШ ПИ}
@@ -82,7 +82,7 @@
 \end{itemize}
 
 \vspace{3mm}
-\textbf{Цель:} Исследовать и продемонстрировать тестирование идемпотентности REST API с тремя различными типами контроллеров Spring Boot.
+\textbf{Цель:} Исследовать и продемонстрировать тестирование идемпотентности сетевых API на примере шести различных типов контроллеров Spring Boot (REST, SOAP, gRPC, GraphQL).
 \end{frame}
 
 % ===== СЛАЙД 4: МАТЕМАТИЧЕСКАЯ ФОРМАЛИЗАЦИЯ =====
@@ -138,27 +138,28 @@ $$O'(s, r, k) = \begin{cases} O(s, r), & k \notin KeyStore \\ cached(k), & k \in
 \end{algorithm}
 \end{frame}
 
-% ===== СЛАЙД 6: ТРИ ТИПА КОНТРОЛЛЕРОВ =====
-\section{Три типа контроллеров}
-\begin{frame}{Три кардинально разных типа контроллеров Spring}
-\footnotesize
+% ===== СЛАЙД 6: ШЕСТЬ ТИПОВ КОНТРОЛЛЕРОВ =====
+\section{Шесть типов контроллеров}
+\begin{frame}{Шесть кардинально разных типов контроллеров}
+\scriptsize
 \begin{table}
 \centering
-\begin{tabular}{@{}p{2.5cm}p{3.5cm}p{3.5cm}p{3cm}@{}}
+\begin{tabular}{@{}p{2.8cm}p{3.3cm}p{2.3cm}p{3.4cm}@{}}
 \toprule
- & \textbf{@RestController} & \textbf{Functional (WebMvc.fn)} & \textbf{Spring Data REST} \\
+\textbf{Тип} & \textbf{Транспорт} & \textbf{Домен} & \textbf{Идемпотентность} \\
 \midrule
-Домен & Заказы & Платежи & Товары \\
-Стиль & Аннотации & Функциональный & Автогенерация \\
-Маршрутизация & @GetMapping & RouterFunction & Автоматическая \\
-Идемпотентность & Idempotency-Key & Idempotency-Key & @Version + ETag \\
-Источник & Spring Guides & Spring Framework docs & Spring Data REST Guide \\
+@RestController        & HTTP/REST (JSON)    & Заказы        & Idempotency-Key (HTTP-фильтр) \\
+Functional Endpoints   & HTTP/REST (JSON)    & Платежи       & \emph{тот же} фильтр \\
+Spring Data REST       & HTTP/HAL+JSON       & Товары        & @Version + ETag \\
+Spring-WS @Endpoint    & SOAP / HTTP+XML     & Отправления   & \emph{тот же} фильтр \\
+GraphQL @Controller    & GraphQL / HTTP      & Инвентарь     & \emph{тот же} фильтр \\
+@GrpcService           & gRPC / HTTP/2       & Уведомления   & ServerInterceptor \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \vspace{2mm}
-\textbf{Ключевое отличие:} способ определения маршрутов и обработчиков принципиально различается, что влияет на подход к обеспечению идемпотентности.
+\textbf{Ключевая идея:} четыре из шести транспортов используют \emph{один и тот же} \texttt{IdempotencyFilter}; gRPC --- единственный, требующий отдельного перехватчика, но он делегирует тому же \texttt{IdempotencyService}.
 \end{frame}
 
 % ===== СЛАЙД 7: ИЛЛЮСТРАТИВНЫЙ ПРИМЕР =====
@@ -220,46 +221,74 @@ $$O'(s, r, k) = \begin{cases} O(s, r), & k \notin KeyStore \\ cached(k), & k \in
 \vspace{3mm}
 \begin{table}
 \centering
-\footnotesize
+\scriptsize
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Профиль} & \textbf{Результат} \\
+\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Транспорт} & \textbf{Результат} \\
 \midrule
-OrderIdempotencyTest & 6 & idempotent & \textcolor{green!70!black}{PASS} \\
-PaymentIdempotencyTest & 5 & idempotent & \textcolor{green!70!black}{PASS} \\
-ProductIdempotencyTest & 5 & idempotent & \textcolor{green!70!black}{PASS} \\
-DataImportTest & 2 & idempotent & \textcolor{green!70!black}{PASS} \\
+OrderIdempotencyTest       & 6 & @RestController             & \textcolor{green!70!black}{PASS} \\
+PaymentIdempotencyTest     & 5 & Functional                  & \textcolor{green!70!black}{PASS} \\
+ProductIdempotencyTest     & 5 & Spring Data REST            & \textcolor{green!70!black}{PASS} \\
+SoapIdempotencyTest        & 3 & SOAP (Spring-WS)            & \textcolor{green!70!black}{PASS} \\
+GrpcIdempotencyTest        & 4 & gRPC (HTTP/2 + protobuf)    & \textcolor{green!70!black}{PASS} \\
+GraphqlIdempotencyTest     & 4 & GraphQL                     & \textcolor{green!70!black}{PASS} \\
+DataImportTest             & 2 & JSON/CSV                    & \textcolor{green!70!black}{PASS} \\
 \midrule
-NonIdempotentProfileTest & 4 & non-idempotent & \textcolor{green!70!black}{PASS*} \\
+NonIdempotentProfileTest   & 7 & все 6 транспортов           & \textcolor{green!70!black}{PASS*} \\
 \midrule
-\textbf{Итого} & \textbf{22} & & \textbf{PASS} \\
+\textbf{Итого}             & \textbf{36} & & \textbf{PASS} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \vspace{2mm}
-\footnotesize *NonIdempotentProfileTest: тесты проходят, \textbf{подтверждая наличие багов} при отключённой идемпотентности (дубликаты, тройное списание).
+\footnotesize *NonIdempotentProfileTest: 7 тестов (по одному на каждый транспорт + ранее существующие), все проходят зелёными, \textbf{подтверждая наличие багов} при отключённой идемпотентности.
 \end{frame}
 
 % ===== СЛАЙД 10: ДЕМОНСТРАЦИЯ ПРОФИЛЕЙ =====
-\begin{frame}{Профиль non-idempotent: демонстрация проблем}
-\footnotesize
+\begin{frame}{Профиль non-idempotent: демонстрация проблем на 6 транспортах}
+\scriptsize
 \begin{table}
 \centering
-\begin{tabular}{@{}p{5cm}p{5cm}c@{}}
+\begin{tabular}{@{}p{5cm}p{4.5cm}c@{}}
 \toprule
 \textbf{Тест} & \textbf{Проблема} & \textbf{Статус} \\
 \midrule
-POST без Idempotency-Key & Проходит без проверки & \textcolor{red}{BUG} \\
-Повторный POST (тот же key) & Дубликат заказа & \textcolor{red}{BUG} \\
-Дубликат SKU товара & Проходит (нет constraint) & \textcolor{red}{BUG} \\
-3x retry платежа & Тройное списание & \textcolor{red}{BUG} \\
+REST POST без Idempotency-Key & Проходит без проверки                    & \textcolor{red}{BUG} \\
+REST повтор POST с тем же ключом & Дубликат заказа                       & \textcolor{red}{BUG} \\
+Data REST дубликат SKU & Проходит (нет constraint)                       & \textcolor{red}{BUG} \\
+Functional 3x retry платежа & Тройное списание                           & \textcolor{red}{BUG} \\
+SOAP тот же tracking\_number & Два Shipment c одним номером              & \textcolor{red}{BUG} \\
+gRPC тот же idempotency-key & Interceptor выкл. $\Rightarrow$ дубликат   & \textcolor{red}{BUG} \\
+GraphQL мутация с тем же ключом & Два Inventory с одним item\_name        & \textcolor{red}{BUG} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\vspace{2mm}
+\textbf{Ключевой вывод:} отключение механизмов идемпотентности приводит к критическим багам \emph{во всех транспортах}, и каждый случай обнаруживается отдельным тестом.
+\end{frame}
+
+% ===== СЛАЙД 10а: АРХИТЕКТУРА ПЕРЕИСПОЛЬЗОВАНИЯ =====
+\begin{frame}{Архитектура переиспользования}
+\scriptsize
+Единый \texttt{IdempotencyService} обслуживает шесть транспортов через два механизма перехвата.
+
+\vspace{2mm}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Перехват} & \textbf{Транспорты} & \textbf{Кодировка снэпшота} \\
+\midrule
+\texttt{IdempotencyFilter} (servlet) & REST, Functional, SOAP, GraphQL & TEXT (JSON / XML) \\
+\texttt{GrpcIdempotencyInterceptor}   & gRPC                            & BYTEA (protobuf) \\
+\texttt{@Version} + ETag              & Spring Data REST                & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \vspace{3mm}
-\textbf{Ключевой вывод:} отключение механизмов идемпотентности приводит к критическим багам, обнаруживаемым тестами.
+\textbf{Доработка фильтра:} миграция V4 расширила \texttt{idempotency\_keys} тремя колонками --- \texttt{response\_content\_type}, \texttt{response\_kind}, \texttt{response\_body\_bytes}. Это превратило фильтр из <<JSON-only>> в \emph{транспорт-агностичный}: SOAP реплеит \texttt{text/xml}, gRPC --- бинарные protobuf-байты через \texttt{MethodDescriptor.responseMarshaller}.
 \end{frame}
 
 % ===== СЛАЙД 11: ВЫВОДЫ =====
@@ -267,17 +296,20 @@ POST без Idempotency-Key & Проходит без проверки & \textco
 \begin{frame}{Выводы}
 \begin{enumerate}
     \item Формализована математическая модель идемпотентности HTTP: $O^n(s) = O(s)$
-    \item Реализованы 3 типа контроллеров Spring с разными механизмами идемпотентности:
+    \item Реализованы \textbf{6 типов контроллеров} в 4 транспортах с единым механизмом идемпотентности:
     \begin{itemize}
-        \item @RestController + Idempotency-Key
-        \item Functional Endpoints + Idempotency-Key
-        \item Spring Data REST + @Version/ETag
+        \scriptsize
+        \item @RestController, Functional, Spring Data REST (HTTP/REST)
+        \item Spring-WS @Endpoint (SOAP)
+        \item @GrpcService + ServerInterceptor (gRPC HTTP/2)
+        \item GraphQL @Controller (single endpoint)
     \end{itemize}
-    \item 22 интеграционных теста (Testcontainers + PostgreSQL)
-    \item Профиль non-idempotent демонстрирует: без идемпотентности --- дубли и тройное списание
+    \item Доработан \texttt{IdempotencyFilter} до транспорт-агностичного: снэпшот ответа $\langle \text{status}, \text{contentType}, \text{kind}, \text{body} \rangle$ позволяет реплеить JSON, XML и бинарный protobuf через единый кеш.
+    \item \textbf{36 интеграционных тестов} (Testcontainers + PostgreSQL)
+    \item Профиль non-idempotent демонстрирует баги во всех 6 транспортах
 \end{enumerate}
 
-\vspace{5mm}
+\vspace{3mm}
 \centering
 \textbf{Спасибо за внимание!}
 \end{frame}

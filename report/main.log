@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.29)  19 APR 2026 18:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.29)  28 MAY 2026 02:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1316,82 +1316,115 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.39 ...РѕРІРєРµ Рё Р·Р°РїСѓСЃРєСѓ}{21}{section.6}
+l.41 ...С‚СЊ С‡РµСЂРµР· GET>>}{24}{subsection.4.3}
                                                   % [1])
 \tf@toc=\write5
 \openout5 = `main.toc'.
 
  [2]
-(./sections/introduction.tex
-Underfull \hbox (badness 10000) in paragraph at lines 26--27
+(./sections/introduction.tex [3{/usr/local/texlive/2026/texmf-dist/fonts/enc/dv
+ips/cm-super/cm-super-ts1.enc}]
+Underfull \hbox (badness 10000) in paragraph at lines 28--29
+[]\T2A/cmr/m/n/14.4 Реализовать ме-ха-низ-мы обес-пе-че-ния идем-по-тент-но-сти
+
+ []
+
+
+Underfull \hbox (badness 2990) in paragraph at lines 28--29
+\T2A/cmr/m/n/14.4 (Idempotency-Key, optimistic locking, unique constraints) и п
+ро-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 28--29
+\T2A/cmr/m/n/14.4 де-мон-стри-ро-вать их пе-ре-ис-поль-зо-ва-ние меж-ду транс-п
+ор-та-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 28--29
+\T2A/cmr/m/n/14.4 ми: еди-ный \T2A/cmtt/c/sc/14.4 IdempotencyService \T2A/cmr/m
+/n/14.4 об-слу-жи-ва-ет HTTP-фильтр
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 30--31
 []\T2A/cmr/m/n/14.4 Разработать на-бор ин-те-гра-ци-он-ных те-стов с ис-поль-зо
 -ва-ни-ем
  []
 
-[3{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
-}]) (./sections/methods.tex [4]
-Underfull \hbox (badness 10000) in paragraph at lines 65--66
+) (./sections/methods.tex [4] [5]
+Underfull \hbox (badness 10000) in paragraph at lines 68--69
 []|\T2A/cmr/m/n/14.4 Получение пред-став-
  []
 
 
-Underfull \hbox (badness 1496) in paragraph at lines 69--70
+Underfull \hbox (badness 1496) in paragraph at lines 72--73
 []|\T2A/cmr/m/n/14.4 Создание или про-из-
  []
 
-[5
+[6
 pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has
  been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.76 
+l.83 
      ]
-Underfull \hbox (badness 4266) in paragraph at lines 104--105
+Underfull \hbox (badness 4266) in paragraph at lines 107--108
 \T2A/cmr/m/n/14.4 Hibernate ав-то-ма-ти-че-ски до-бав-ля-ет про-вер-ку вер-сии 
 в SQL-запрос
  []
 
-[6]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 111.
-
-Underfull \hbox (badness 4832) in paragraph at lines 148--149
+put line 114.
+[7]
+Underfull \hbox (badness 4832) in paragraph at lines 151--152
 \T2A/cmr/m/n/14.4 вра-ща-ет гон-ку (race condition): ес-ли два за-про-са с од-н
 им клю-
  []
 
-[7]
-Underfull \hbox (badness 10000) in paragraph at lines 177--178
+[8]
+Underfull \hbox (badness 10000) in paragraph at lines 180--181
 []\T2A/cmr/m/n/14.4 Возвращаем кэ-ши-ро-ван-ный от-вет: \T2A/cmtt/c/sc/14.4 201
  Created\T2A/cmr/m/n/14.4 , те-ло: \T2A/cmtt/c/sc/14.4 {id:
  []
 
-[8]
-Underfull \hbox (badness 10000) in paragraph at lines 225--225
-[]|\T2A/cmr/bx/n/12 Functional
+[9]
+Underfull \hbox (badness 3058) in paragraph at lines 229--229
+[]|\T2A/cmr/bx/n/8 Маршрутизация / об-ра-бот-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 225--225
-[]|\T2A/cmr/bx/n/12 Spring Data
+Underfull \hbox (badness 1281) in paragraph at lines 229--229
+[]|\T2A/cmr/m/n/8 Аннотации @GetMapping, ме-тод
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 225--225
-[]|\T2A/cmr/m/n/12 @GetMapping,
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+[]|\T2A/cmr/m/n/8 RouterFunction $\OMS/cmsy/m/n/8 !$
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 225--225
-[]|\T2A/cmr/m/n/12 Spring Guides
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+[]|\T2A/cmr/m/n/8 Автогенерация из
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 225--225
-[]|\T2A/cmr/m/n/12 Spring Framework
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+[]|\T2A/cmr/m/n/8 @PayloadRoot,
  []
 
-[9
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+[]|\T2A/cmr/m/n/8 @QueryMapping /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+\T2A/cmr/m/n/8 @MutationMapping, single
+ []
+
+[10
 pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has
  been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
@@ -1403,182 +1436,632 @@ pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.237 
-      ]
-Underfull \hbox (badness 7486) in paragraph at lines 257--258
+      ] [11]
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+[]\T2A/cmr/m/n/14.4 В на-шей ре-а-ли-за-ции (до-мен \T2A/cmtt/c/sc/14.4 shipmen
+ts\T2A/cmr/m/n/14.4 ) сервлет
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+\T2A/cmtt/c/sc/14.4 MessageDispatcherServlet \T2A/cmr/m/n/14.4 за-ре-ги-стри-ро
+-ван под URL-паттерном
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+\T2A/cmtt/c/sc/14.4 /api/soap/*\T2A/cmr/m/n/14.4 . Кон-тракт опи-сан в \T2A/cmt
+t/c/sc/14.4 xsd/shipments.xsd \T2A/cmr/m/n/14.4 с ти-па-ми
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+\T2A/cmtt/c/sc/14.4 createShipmentRequest\T2A/cmr/m/n/14.4 , \T2A/cmtt/c/sc/14.
+4 createShipmentResponse \T2A/cmr/m/n/14.4 и т.д. Энд-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+\T2A/cmr/m/n/14.4 по-инт \T2A/cmtt/c/sc/14.4 ShipmentEndpoint \T2A/cmr/m/n/14.4
+ ан-но-ти-ро-ван \T2A/cmtt/c/sc/14.4 @Endpoint\T2A/cmr/m/n/14.4 , ме-то-ды ---
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 264--265
+\T2A/cmtt/c/sc/14.4 @PayloadRoot(namespace=..., localPart=...) \T2A/cmr/m/n/14.
+4 и \T2A/cmtt/c/sc/14.4 @ResponsePayload\T2A/cmr/m/n/14.4 ;
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 266--267
+[]\T2A/cmr/m/n/14.4 Ключевой мо-мент с точ-ки зре-ния идем-по-тент-но-сти:
+ []
+
+
+Underfull \hbox (badness 7944) in paragraph at lines 266--267
+\T2A/cmtt/c/sc/14.4 MessageDispatcherServlet \T2A/cmr/m/n/14.4 --- это обыч-ный
+ \T2A/cmtt/c/sc/14.4 HttpServlet\T2A/cmr/m/n/14.4 , по-это-му
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 273--274
+[]\T2A/cmr/m/n/14.4 В на-шей ре-а-ли-за-ции (до-мен \T2A/cmtt/c/sc/14.4 notific
+ations\T2A/cmr/m/n/14.4 ) ис-поль-зу-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 273--274
+\T2A/cmr/m/n/14.4 ет-ся стар-тер \T2A/cmtt/c/sc/14.4 grpc-spring-boot-starter \
+T2A/cmr/m/n/14.4 [[]15[]]; gRPC-сервис
+ []
+
+[12]
+Overfull \hbox (15.39378pt too wide) in paragraph at lines 276--277
+\T2A/cmtt/c/sc/14.4 call.getMethodDescriptor().getResponseMarshaller().parse(..
+.)\T2A/cmr/m/n/14.4 .
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 277--278
+[]\T2A/cmr/m/n/14.4 При но-вом вы-зо-ве ре-ги-стри-ру-ет ключ че-рез
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 277--278
+\T2A/cmr/m/n/14.4 тот же \T2A/cmtt/c/sc/14.4 IdempotencyService\T2A/cmr/m/n/14.
+4 , обо-ра-чи-ва-ет call в
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 277--278
+\T2A/cmtt/c/sc/14.4 ForwardingServerCall.SimpleForwardingServerCall\T2A/cmr/m/n
+/14.4 , пе-ре-хва-
+ []
+
+
+Underfull \hbox (badness 4266) in paragraph at lines 277--278
+\T2A/cmr/m/n/14.4 ты-ва-ет \T2A/cmtt/c/sc/14.4 sendMessage(RespT)\T2A/cmr/m/n/1
+4.4 , се-ри-а-ли-зу-ет от-вет че-рез тот же
+ []
+
+
+Underfull \hbox (badness 2617) in paragraph at lines 280--281
+[]\T2A/cmr/m/n/14.4 Таким об-ра-зом, gRPC-перехватчик пе-ре-ис-поль-зу-ет \T2A/
+cmr/m/it/14.4 тот же бин
+ []
+
+[13]
+Underfull \hbox (badness 1163) in paragraph at lines 299--301
+\T2A/cmr/m/n/14.4 в \T2A/cmtt/c/sc/14.4 response_-body TEXT \T2A/cmr/m/n/14.4 л
+и-бо бай-ты в \T2A/cmtt/c/sc/14.4 response_-body_-bytes BYTEA\T2A/cmr/m/n/14.4 
+), а
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 304--305
+\T2A/cmtt/c/sc/14.4 content_-type VARCHAR(150)\T2A/cmr/m/n/14.4 , \T2A/cmtt/c/s
+c/14.4 response_-kind VARCHAR(16)\T2A/cmr/m/n/14.4 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 306--307
+[]\T2A/cmtt/c/sc/14.4 IdempotencyFilter \T2A/cmr/m/n/14.4 по-сле \T2A/cmtt/c/sc
+/14.4 filterChain.doFilter
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 306--307
+\T2A/cmr/m/n/14.4 чи-та-ет ре-аль-ный Content-Type че-рез
+ []
+
+
+Overfull \hbox (11.58936pt too wide) in paragraph at lines 306--307
+\T2A/cmtt/c/sc/14.4 ContentCachingResponseWrapper.getHeader(HttpHeaders.CONTENT
+_-
+ []
+
+
+Underfull \hbox (badness 1838) in paragraph at lines 306--307
+\T2A/cmr/m/n/14.4 че-рез \T2A/cmtt/c/sc/14.4 response.getOutputStream() \T2A/cm
+r/m/n/14.4 --- уни-фи-ци-ро-ван-но по бай-
+ []
+
+
+Underfull \hbox (badness 7486) in paragraph at lines 315--316
 []\T2A/cmr/bx/n/14.4 Spring Boot Test \T2A/cmr/m/n/14.4 --- ин-те-гра-ци-он-ное
  те-сти-ро-ва-ние Spring-
  []
 
-[10]
-Underfull \hbox (badness 1028) in paragraph at lines 260--261
+[14]
+Underfull \hbox (badness 1028) in paragraph at lines 318--319
 []\T2A/cmr/bx/n/14.4 Spring Profiles \T2A/cmr/m/n/14.4 --- пе-ре-клю-че-ние кон
 -фи-гу-ра-ции для те-сти-ро-ва-
  []
 
-) (./sections/results.tex [11]
-Underfull \hbox (badness 10000) in paragraph at lines 54--55
-[]\T2A/cmr/bx/n/14.4 IdempotencyFilter \T2A/cmr/m/n/14.4 --- HTTP-фильтр (на-сл
-ед-ник
+) (./sections/results.tex
+Underfull \hbox (badness 10000) in paragraph at lines 8--9
+[]\T2A/cmr/bx/n/14.4 Платежи \T2A/cmr/m/n/14.4 (\T2A/cmtt/c/sc/14.4 /api/paymen
+ts\T2A/cmr/m/n/14.4 ) --- функ-ци-о-наль-ные энд-по-ин-ты
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 56--57
-\T2A/cmr/m/n/14.4 чей. Предо-став-ля-ет ме-то-ды \T2A/cmtt/c/sc/14.4 findByKey(
-)\T2A/cmr/m/n/14.4 , \T2A/cmtt/c/sc/14.4 registerKey() \T2A/cmr/m/n/14.4 и
+Underfull \hbox (badness 10000) in paragraph at lines 11--12
+[]\T2A/cmr/bx/n/14.4 Уведомления \T2A/cmr/m/n/14.4 (\T2A/cmtt/c/sc/14.4 localho
+st:9090\T2A/cmr/m/n/14.4 ) --- gRPC-сервис, кон-тракт
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 56--57
-\T2A/cmtt/c/sc/14.4 saveResponse()\T2A/cmr/m/n/14.4 . Опе-ра-ции вы-пол-ня-ют-с
-я в тран-зак-ци-ях для
+Underfull \hbox (badness 10000) in paragraph at lines 12--13
+[]\T2A/cmr/bx/n/14.4 Инвентарь \T2A/cmr/m/n/14.4 (\T2A/cmtt/c/sc/14.4 /graphql\
+T2A/cmr/m/n/14.4 ) --- GraphQL-контроллер, схе-ма
+ []
+
+[15]
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- config/                 # WebMvcConfig (URL-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 66--67
+Overfull \hbox (107.89034pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- idempotency/            # Filter, Service, Entity, Re
+pository, ResponseKind[] 
+ []
+
+
+Overfull \hbox (27.49832pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- order/                  # @RestController + Service +
+ Repository[] 
+ []
+
+
+Overfull \hbox (5.57323pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- payment/                # Functional: PaymentRouter +
+ Handler[] 
+ []
+
+
+Overfull \hbox (115.1987pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- product/                # Spring Data REST: ProductRe
+pository + EventHandler[] 
+ []
+
+
+Overfull \hbox (122.50706pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- soap/shipment/          # SOAP: ShipmentEndpoint + Se
+rvice + WebServiceConfig[] 
+ []
+
+
+Overfull \hbox (100.58197pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- grpc/                   # GrpcIdempotencyInterceptor 
+(общий для всех gRPC-
+ []
+
+
+Overfull \hbox (144.43216pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |   `-- notification/       # gRPC-домен: NotificationGrp
+cService + Service + Entity[] 
+ []
+
+
+Overfull \hbox (144.43216pt too wide) in paragraph at lines 37--37
+[]\T2A/cmtt/c/sc/14.4 |-- graphql/inventory/      # GraphQL: InventoryGraphqlCo
+ntroller + Service + Entity[] 
+ []
+
+
+Underfull \hbox (badness 4353) in paragraph at lines 60--60
+[]|\T2A/cmr/m/n/8 id (UUID), order_-id (FK), amount,
+ []
+
+
+Underfull \hbox (badness 6001) in paragraph at lines 60--60
+[]|\T2A/cmr/m/n/8 id (BIGSERIAL), sku, name, price,
+ []
+
+
+Underfull \hbox (badness 2012) in paragraph at lines 63--64
+\T2A/cmtt/c/sc/14.4 response_-content_-type \T2A/cmr/m/n/14.4 вос-ста-нав-ли-ва
+-ет ори-ги-наль-ный MIME-тип на
+ []
+
+[16
+pdfTeX warning (ext4): destination with the same identifier (name{table.4}) has
+ been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.65 \subsubsection
+                   {РљРѕРјРїРѕРЅРµРЅС‚С‹ РјРµС…Р°РЅРёР·РјР° РёРґРµРјРїРѕС‚Рµ...
+]
+Underfull \hbox (badness 5667) in paragraph at lines 67--68
+[]\T2A/cmr/m/n/14.4 Механизм идем-по-тент-но-сти ре-а-ли-зо-ван че-рез че-ты-ре
+ ком-по-нен-
+ []
+
+
+Underfull \hbox (badness 1048) in paragraph at lines 67--68
+\T2A/cmr/m/n/14.4 та, пе-ре-ис-поль-зу-е-мых че-тырь-мя HTTP-транспортами и од-
+ним gRPC-
+ []
+
+
+Underfull \hbox (badness 2922) in paragraph at lines 70--71
+[]\T2A/cmr/bx/n/14.4 IdempotencyFilter \T2A/cmr/m/n/14.4 --- един-ствен-ный HTT
+P-фильтр (на-след-ник
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--71
+\T2A/cmtt/c/sc/14.4 /graphql\T2A/cmr/m/n/14.4 . Ре-а-ли-зу-ет ал-го-ритм []1[].
+ От-клю-ча-ет-ся па-ра-мет-ром
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--71
+[]\T2A/cmr/m/n/14.4 . По-сле до-ра-бот-ки V4 (џ[]2.8[])
+ []
+
+
+Underfull \hbox (badness 3547) in paragraph at lines 72--73
+\T2A/cmr/m/n/14.4 ра-бо-та-ет с лю-бым unary-методом лю-бо-го gRPC-сервиса че-р
+ез
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 84--85
 []\T2A/cmr/bx/n/14.4 Профиль по умол-ча-нию\T2A/cmr/m/n/14.4 : идем-по-тент-нос
 ть вклю-че-на
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 68--69
+Underfull \hbox (badness 10000) in paragraph at lines 86--87
 []\T2A/cmr/bx/n/14.4 Профиль non-idempotent\T2A/cmr/m/n/14.4 : идем-по-тент-нос
 ть от-клю-че-на
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 68--69
-\T2A/cmr/m/n/14.4 ([]), Flyway до-пол-ни-тель-но при-ме-ня-ет ми-гра-цию
+Underfull \hbox (badness 10000) in paragraph at lines 86--87
+\T2A/cmr/m/n/14.4 ([]), Flyway до-пол-ни-тель-но при-ме-ня-ет ми-гра-ции
  []
 
-[12
-pdfTeX warning (ext4): destination with the same identifier (name{table.4}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.69 \end{itemize}
-                  ]
-Underfull \hbox (badness 1038) in paragraph at lines 105--106
+[17]
+Overfull \hbox (9.38863pt too wide) in paragraph at lines 100--116
+ [][] 
+ []
+
+
+Underfull \hbox (badness 1038) in paragraph at lines 127--128
 []\T2A/cmr/bx/n/14.4 DELETE идем-по-тен-тен \T2A/cmr/m/n/14.4 --- пер-вый вы-зо
 в воз-вра-ща-ет 204 No
  []
 
-[13
+[18
 pdfTeX warning (ext4): destination with the same identifier (name{table.5}) has
  been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.107 \end{enumerate}
+l.129 \end{enumerate}
                      ]
-Underfull \hbox (badness 10000) in paragraph at lines 123--124
+Underfull \hbox (badness 10000) in paragraph at lines 145--146
 \T2A/cmr/m/n/14.4 ав-то-ма-ти-че-ски ин-кре-мен-ти-ру-ет-ся. Про-ве-ря-ет-ся со
 в-па-де-ние
  []
 
 
-Underfull \hbox (badness 3471) in paragraph at lines 132--133
+Underfull \hbox (badness 3471) in paragraph at lines 154--155
 []\T2A/cmr/bx/n/14.4 Импорт за-ка-зов из JSON \T2A/cmr/m/n/14.4 --- за-груз-ка 
 дан-ных из фай-ла
  []
 
 
-Underfull \hbox (badness 4765) in paragraph at lines 133--134
+Underfull \hbox (badness 4765) in paragraph at lines 155--156
 []\T2A/cmr/bx/n/14.4 Импорт то-ва-ров из CSV \T2A/cmr/m/n/14.4 --- за-груз-ка д
 ан-ных из фай-ла
  []
 
-[14]) (./sections/discussion.tex
-Underfull \hbox (badness 10000) in paragraph at lines 22--22
-[]|\T2A/cmr/m/n/12 Естественная
+[19]
+Underfull \hbox (badness 2452) in paragraph at lines 160--161
+[]\T2A/cmr/m/n/14.4 Тесты ис-поль-зу-ют \T2A/cmtt/c/sc/14.4 TestRestTemplate \T
+2A/cmr/m/n/14.4 на random-порту (MockMvc
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 22--22
-[]|\T2A/cmr/m/n/12 Естественная
+Underfull \hbox (badness 10000) in paragraph at lines 160--161
+\T2A/cmr/m/n/14.4 марш-ру-ти-зи-ру-ет толь-ко в \T2A/cmtt/c/sc/14.4 DispatcherS
+ervlet \T2A/cmr/m/n/14.4 и не вы-зы-ва-ет
  []
 
-[15
+
+Underfull \hbox (badness 10000) in paragraph at lines 160--161
+\T2A/cmtt/c/sc/14.4 MessageDispatcherServlet\T2A/cmr/m/n/14.4 ), от-прав-ляя сы
+-рой SOAP-envelope в
+ []
+
+
+Underfull \hbox (badness 1383) in paragraph at lines 169--170
+[]\T2A/cmr/m/n/14.4 Тесты под-клю-ча-ют-ся че-рез \T2A/cmtt/c/sc/14.4 InProcess
+ChannelBuilder \T2A/cmr/m/n/14.4 к in-process
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 179--180
+[]\T2A/cmr/m/n/14.4 Тесты ис-поль-зу-ют \T2A/cmtt/c/sc/14.4 TestRestTemplate \T
+2A/cmr/m/n/14.4 на \T2A/cmtt/c/sc/14.4 /graphql\T2A/cmr/m/n/14.4 , от-прав-ляя
+ []
+
+[20]
+Underfull \hbox (badness 10000) in paragraph at lines 194--195
+[]\T2A/cmr/m/n/14.4 Миграция V8 уда-ля-ет UNIQUE constraints на \T2A/cmtt/c/sc/
+14.4 shipments\T2A/cmr/m/n/14.4 ,
+ []
+
+
+Underfull \hbox (badness 1092) in paragraph at lines 214--214
+[]|\T2A/cmr/m/n/12 REST по-втор-ный POST с тем же
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 214--214
+[]|\T2A/cmr/m/n/12 SOAP createShipment с тем же
+ []
+
+
+Underfull \hbox (badness 2591) in paragraph at lines 214--214
+[]|\T2A/cmr/m/n/12 Interceptor вы-клю-чен $\OMS/cmsy/m/n/12 )$ \T2A/cmr/m/n/12 
+дуб-ли-кат
+ []
+
+) (./sections/discussion.tex
+Underfull \hbox (badness 4120) in paragraph at lines 217--1
+[]\T2A/cmr/m/n/14.4 Все семь те-стов \T2A/cmtt/c/sc/14.4 NonIdempotentProfileTe
+st \T2A/cmr/m/n/14.4 про-хо-дят зе-лј-ны-ми,
+ []
+
+
+Underfull \hbox (badness 5231) in paragraph at lines 217--1
+\T2A/cmr/m/n/14.4 под-твер-ждая на-ли-чие про-блем во всех ше-сти транс-пор-тах
+. Каж-
+ []
+
+
+Underfull \hbox (badness 2035) in paragraph at lines 217--1
+\T2A/cmr/m/n/14.4 дый тест ис-поль-зу-ет пря-мые assertions: на-при-мер, про-ве
+-ря-ет-ся, что
+ []
+
+
+Underfull \hbox (badness 2277) in paragraph at lines 217--1
+[] \T2A/cmr/m/n/14.4 --- без пе-ре-хват-чи-ка gRPC и
+ []
+
+
+Underfull \hbox (badness 2512) in paragraph at lines 217--1
+\T2A/cmr/m/n/14.4 без DB constraint дей-стви-тель-но со-зда-ют-ся дуб-ли-ка-ты.
+ Это де-мон-
+ []
+
+[21
 pdfTeX warning (ext4): destination with the same identifier (name{table.6}) has
  been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.24 
-     ]
-Underfull \hbox (badness 1152) in paragraph at lines 27--28
+l.1 \section
+            {РћР±СЃСѓР¶РґРµРЅРёРµ}]
+Underfull \hbox (badness 1152) in paragraph at lines 30--31
 \T2A/cmr/m/n/14.4 кость в ре-а-ли-за-ции идем-по-тент-но-сти, но тре-бу-ет руч-
 ной ре-а-ли-за-ции
  []
 
-
-Underfull \hbox (badness 2020) in paragraph at lines 29--30
+[22
+pdfTeX warning (ext4): destination with the same identifier (name{table.7}) has
+ been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.31 
+     ]
+Underfull \hbox (badness 2020) in paragraph at lines 32--33
 []\T2A/cmr/bx/n/14.4 Функциональные энд-по-ин-ты \T2A/cmr/m/n/14.4 (WebMvc.fn) 
 ис-поль-зу-ют тот же
  []
 
 
-Underfull \hbox (badness 2197) in paragraph at lines 29--30
+Underfull \hbox (badness 2197) in paragraph at lines 32--33
 \T2A/cmr/m/n/14.4 ме-ха-низм Idempotency-Key че-рез об-щий фильтр, что де-мон-с
 три-ру-ет
  []
 
 
-Underfull \hbox (badness 1087) in paragraph at lines 29--30
+Underfull \hbox (badness 1087) in paragraph at lines 32--33
 \T2A/cmr/m/n/14.4 и тот же \T2A/cmtt/c/sc/14.4 IdempotencyFilter \T2A/cmr/m/n/1
 4.4 обес-пе-чи-ва-ет идем-по-тент-ность как для
  []
 
-[16
-pdfTeX warning (ext4): destination with the same identifier (name{table.7}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.37 
-     ] [17] [18] [19]
-Underfull \hbox (badness 10000) in paragraph at lines 84--85
+
+Underfull \hbox (badness 2368) in paragraph at lines 38--39
+[]\T2A/cmr/bx/n/14.4 gRPC \T2A/cmr/m/n/14.4 по-тре-бо-вал наи-боль-ших ар-хи-те
+к-тур-ных уси-лий: при-шлось
+ []
+
+
+Underfull \hbox (badness 4132) in paragraph at lines 38--39
+\T2A/cmr/m/n/14.4 на-пи-сать от-дель-ный \T2A/cmtt/c/sc/14.4 ServerInterceptor\
+T2A/cmr/m/n/14.4 , вве-сти би-нар-ную вет-ку в
+ []
+
+
+Underfull \hbox (badness 6592) in paragraph at lines 38--39
+\T2A/cmr/m/n/14.4 схе-му \T2A/cmtt/c/sc/14.4 idempotency_-keys \T2A/cmr/m/n/14.
+4 (BYTEA вме-сто TEXT) и ре-шить, как
+ []
+
+
+Underfull \hbox (badness 3375) in paragraph at lines 38--39
+\T2A/cmr/m/n/14.4 репле-ить от-вет без зна-ния кон-крет-но-го proto-типа. Ре-ше
+-ние че-рез
+ []
+
+[23] [24] [25] [26]
+Underfull \hbox (badness 10000) in paragraph at lines 93--94
 []\T2A/cmr/bx/n/14.4 Комбинировать ме-ха-низ-мы\T2A/cmr/m/n/14.4 : Idempotency-
 Key для POST,
  []
 
 
-Underfull \hbox (badness 2173) in paragraph at lines 84--85
+Underfull \hbox (badness 2173) in paragraph at lines 93--94
 \T2A/cmr/m/n/14.4 @Version для PUT, UNIQUE constraints как по-след-ний ру-беж
  []
 
-
-Underfull \hbox (badness 1360) in paragraph at lines 93--94
+[27]
+Underfull \hbox (badness 1360) in paragraph at lines 102--103
 []\T2A/cmr/m/n/14.4 Формализована ма-те-ма-ти-че-ская мо-дель идем-по-тент-но-с
 ти HTTP-
  []
 
-[20]
-Underfull \hbox (badness 10000) in paragraph at lines 96--97
-[]\T2A/cmr/m/n/14.4 Разработано 22 ин-те-гра-ци-он-ных те-ста с ис-поль-зо-ва-н
-и-ем
+
+Underfull \hbox (badness 10000) in paragraph at lines 103--104
+[]\T2A/cmr/m/n/14.4 Реализован и про-те-сти-ро-ван транспорт-агностичный пат-
  []
 
-) (./sections/installation.tex [21]
-Underfull \hbox (badness 6477) in paragraph at lines 47--48
+
+Underfull \hbox (badness 10000) in paragraph at lines 103--104
+\T2A/cmr/m/n/14.4 терн Idempotency-Key с хра-не-ни-ем клю-чей и снэп-шо-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 103--104
+\T2A/cmr/m/n/14.4 тов от-ве-тов в PostgreSQL. Снэп-шот до-опре-де-лјн как
+ []
+
+
+Underfull \hbox (badness 2617) in paragraph at lines 103--104
+\OMS/cmsy/m/n/14.4 h[]\OML/cmm/m/it/14.4 ; []; []; []\OMS/cmsy/m/n/14.4 i$\T2A/
+cmr/m/n/14.4 , что поз-во-ля-ет кор-рект-но репле-
+ []
+
+
+Underfull \hbox (badness 2680) in paragraph at lines 103--104
+\T2A/cmr/m/n/14.4 ить от-ве-ты лю-бо-го фор-ма-та --- JSON, XML/SOAP, би-нар-ны
+й
+ []
+
+
+Underfull \hbox (badness 2065) in paragraph at lines 104--105
+[]\T2A/cmr/m/n/14.4 Продемонстрированы шесть под-хо-дов к ор-га-ни-за-ции сер-в
+ер-ных
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 104--105
+\T2A/cmr/m/n/14.4 функ-ци-о-наль-ный \T2A/cmtt/c/sc/14.4 RouterFunction\T2A/cmr
+/m/n/14.4 , ав-то-ге-не-ри-ру-е-мый Spring
+ []
+
+
+Underfull \hbox (badness 6808) in paragraph at lines 104--105
+\T2A/cmr/m/n/14.4 Data REST, контракт-первый \T2A/cmtt/c/sc/14.4 @Endpoint \T2A
+/cmr/m/n/14.4 (Spring-WS, SOAP),
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 104--105
+\T2A/cmtt/c/sc/14.4 @GrpcService \T2A/cmr/m/n/14.4 (gRPC, HTTP/2 + protobuf) и 
+schema-first
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 105--106
+[]\T2A/cmr/m/n/14.4 Показано пе-ре-ис-поль-зо-ва-ние еди-но-го \T2A/cmtt/c/sc/1
+4.4 IdempotencyService\T2A/cmr/m/n/14.4 :
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 105--106
+\T2A/cmr/m/n/14.4 че-ты-ре HTTP-транспорта ра-бо-та-ют че-рез \T2A/cmr/m/it/14.
+4 один и тот
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 105--106
+\T2A/cmr/m/it/14.4 же бин \T2A/cmtt/c/sc/14.4 IdempotencyFilter \T2A/cmr/m/n/14
+.4 (раз-ли-ча-ют-ся толь-ко URL-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 105--106
+\T2A/cmr/m/n/14.4 де-ле-ги-ру-ю-щий то-му же сер-ви-су че-рез transport-generic
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 106--107
+[]\T2A/cmr/m/n/14.4 Разработано 36 ин-те-гра-ци-он-ных те-стов с ис-поль-зо-ва-
+ни-ем
+ []
+
+) (./sections/installation.tex [28]
+Underfull \hbox (badness 6477) in paragraph at lines 50--51
 []\T2A/cmr/bx/n/14.4 Примечание: \T2A/cmr/m/n/14.4 для за-пус-ка те-стов тре-бу
 -ет-ся Docker, так как
  []
 
-) [22]
+[29]
+Overfull \hbox (27.49832pt too wide) in paragraph at lines 76--76
+[]  \T2A/cmtt/c/sc/14.4 com.example.idempotency.grpc.notification.NotificationS
+ervice/Send[] 
+ []
+
+
+Overfull \hbox (188.28235pt too wide) in paragraph at lines 84--84
+[]  \T2A/cmtt/c/sc/14.4 -d '{"query":"mutation { reserveInventory(input:{itemNa
+me:\"X\",quantity:5}) { id } }"}'[] 
+ []
+
+) [30]
 Underfull \hbox (badness 1412) in paragraph at lines 99--99
 []\T2A/cmr/m/it/14.4 Spring Framework\T2A/cmr/m/n/14.4 . Functional Endpoints -
 -- Spring Web MVC. ^^V
  []
 
-[23] (./sections/appendix.tex
+[31] [32] (./sections/appendix.tex
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
 nput line 10.
- [24]
+ [33]
 (/usr/local/texlive/2026/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 LaTeX Font Info:    Font shape `T2A/cmtt/bx/n' in size <12> not available
 (Font)              Font shape `T2A/cmtt/m/n' tried instead on input line 88.
- [25]
-[26] [27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39] [40]
-[41] [42] [43]) [44] (./main.aux)
+ [34]
+[35] [36] [37] [38] [39] [40] [41] [42] [43] [44] [45] [46] [47] [48] [49]
+[50] [51] [52]
+Underfull \hbox (badness 1242) in paragraph at lines 885--885
+[][]\T2A/cmr/bx/n/17.28 А.32. V4_-_-idempotency_-content_-meta.sql (рас-ши-ре-
+ []
+
+
+Underfull \hbox (badness 1242) in paragraph at lines 900--900
+[][]\T2A/cmr/bx/n/17.28 А.34. IdempotencyKeyEntity.java (об-нов-лјн-ная по-сле
+ []
+
+[53] [54] [55] [56] [57]
+(/usr/local/texlive/2026/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2025/11/14 1.11b listings language file
+)
+(/usr/local/texlive/2026/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
+) [58]
+[59]
+Underfull \hbox (badness 10000) in paragraph at lines 1191--1191
+[]\T2A/cmr/m/n/14.4 Листинг 43: Transport-generic пе-ре-хват-чик: пе-ре-ис-поль
+-зу-ет
+ []
+
+[60] [61] [62] [63]
+Underfull \hbox (badness 1281) in paragraph at lines 1339--1339
+[][]\T2A/cmr/bx/n/17.28 А.45. V8_-_-drop_-new_-constraints.sql (про-филь non-
+ []
+
+) [64] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1588,17 +2071,17 @@ L3 programming layer <2026-01-19>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: F5894B25BE9D423ACD86766C93C6780E;12077.
+(rerunfilecheck)             Checksum: AE301B904D90C996B0D597EC0225D82C;14280.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 26732 strings out of 467525
- 452961 string characters out of 5418982
- 1772091 words of memory out of 5000000
- 54353 multiletter control sequences out of 15000+600000
- 649508 words of font info for 94 fonts, out of 8000000 for 9000
+ 27490 strings out of 467525
+ 465071 string characters out of 5418982
+ 1803947 words of memory out of 5000000
+ 54634 multiletter control sequences out of 15000+600000
+ 651187 words of font info for 96 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,13n,79p,2070b,3117s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
@@ -1607,26 +2090,30 @@ Here is how much of TeX's memory you used:
 /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></u
 sr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr
 /local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/
-local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></
-usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pf
-b></usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb>
-</usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></
-usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></us
-r/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></usr/
-local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></usr/lo
-cal/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfcc1440.pfb></usr/loca
-l/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfit1200.pfb></usr/local/
-texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfrm0600.pfb></usr/local/te
-xlive/2026/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texl
-ive/2026/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/local/texliv
-e/2026/texmf-dist/fonts/type1/public/cm-super/sfrm1440.pfb></usr/local/texlive/
-2026/texmf-dist/fonts/type1/public/cm-super/sfti1440.pfb></usr/local/texlive/20
-26/texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb></usr/local/texlive/2026
-/texmf-dist/fonts/type1/public/cm-super/sftt1440.pfb>
-Output written on main.pdf (45 pages, 618910 bytes).
+local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/lo
+cal/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></us
+r/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+</usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx0800.pfb></
+usr/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></us
+r/local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/
+local/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></usr/lo
+cal/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></usr/loca
+l/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfcc1440.pfb></usr/local/
+texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfit1200.pfb></usr/local/te
+xlive/2026/texmf-dist/fonts/type1/public/cm-super/sfrm0600.pfb></usr/local/texl
+ive/2026/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texliv
+e/2026/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/local/texlive/
+2026/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/20
+26/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/local/texlive/2026
+/texmf-dist/fonts/type1/public/cm-super/sfrm1440.pfb></usr/local/texlive/2026/t
+exmf-dist/fonts/type1/public/cm-super/sfti0800.pfb></usr/local/texlive/2026/tex
+mf-dist/fonts/type1/public/cm-super/sfti1440.pfb></usr/local/texlive/2026/texmf
+-dist/fonts/type1/public/cm-super/sftt1200.pfb></usr/local/texlive/2026/texmf-d
+ist/fonts/type1/public/cm-super/sftt1440.pfb>
+Output written on main.pdf (65 pages, 782411 bytes).
 PDF statistics:
- 1646 PDF objects out of 1728 (max. 8388607)
- 1538 compressed objects within 16 object streams
- 953 named destinations out of 1000 (max. 500000)
- 345 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2361 PDF objects out of 2487 (max. 8388607)
+ 2218 compressed objects within 23 object streams
+ 1424 named destinations out of 1440 (max. 500000)
+ 401 words of extra memory for PDF output out of 10000 (max. 10000000)
 

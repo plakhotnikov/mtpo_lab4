@@ -52,13 +52,13 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(1)
-    @DisplayName("POST с Idempotency-Key дважды — создаётся только один заказ")
+    @DisplayName("POST с Idempotency-Key дважды - создаётся только один заказ")
     void postWithSameIdempotencyKey_shouldReturnCachedResponse() throws Exception {
         var dto = new OrderDto("Тестовый ноутбук", new BigDecimal("89999.99"), null);
         String body = objectMapper.writeValueAsString(dto);
         String idempotencyKey = UUID.randomUUID().toString();
 
-        // Первый запрос — создание
+        // Первый запрос - создание
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Idempotency-Key", idempotencyKey)
@@ -66,7 +66,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.description").value("Тестовый ноутбук"));
 
-        // Второй запрос с тем же ключом — должен вернуть кэшированный ответ
+        // Второй запрос с тем же ключом - должен вернуть кэшированный ответ
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Idempotency-Key", idempotencyKey)
@@ -81,7 +81,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(2)
-    @DisplayName("POST с разными Idempotency-Key — создаются два заказа")
+    @DisplayName("POST с разными Idempotency-Key - создаются два заказа")
     void postWithDifferentKeys_shouldCreateTwoOrders() throws Exception {
         var dto1 = new OrderDto("Заказ А", new BigDecimal("1000.00"), null);
         var dto2 = new OrderDto("Заказ Б", new BigDecimal("2000.00"), null);
@@ -103,7 +103,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(3)
-    @DisplayName("POST без Idempotency-Key — ошибка 400")
+    @DisplayName("POST без Idempotency-Key - ошибка 400")
     void postWithoutIdempotencyKey_shouldReturn400() throws Exception {
         var dto = new OrderDto("Заказ без ключа", new BigDecimal("500.00"), null);
 
@@ -115,7 +115,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(4)
-    @DisplayName("PUT идемпотентен — повторное обновление даёт тот же результат")
+    @DisplayName("PUT идемпотентен - повторное обновление даёт тот же результат")
     void putIsIdempotent_shouldReturnSameResult() throws Exception {
         // Создаём заказ
         var createDto = new OrderDto("Оригинальный заказ", new BigDecimal("1000.00"), null);
@@ -154,7 +154,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(5)
-    @DisplayName("DELETE идемпотентен — первый раз 204, второй раз 404")
+    @DisplayName("DELETE идемпотентен - первый раз 204, второй раз 404")
     void deleteIsIdempotent_shouldReturn204Then404() throws Exception {
         // Создаём заказ
         var dto = new OrderDto("Заказ на удаление", new BigDecimal("500.00"), null);
@@ -167,18 +167,18 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
         String orderId = objectMapper.readTree(result).get("id").asText();
 
-        // Первый DELETE — успех
+        // Первый DELETE - успех
         mockMvc.perform(delete("/api/orders/" + orderId))
                 .andExpect(status().isNoContent());
 
-        // Второй DELETE — ресурс уже удалён
+        // Второй DELETE - ресурс уже удалён
         mockMvc.perform(delete("/api/orders/" + orderId))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @org.junit.jupiter.api.Order(6)
-    @DisplayName("GET идемпотентен — многократные запросы возвращают одинаковый результат")
+    @DisplayName("GET идемпотентен - многократные запросы возвращают одинаковый результат")
     void getIsIdempotent_shouldReturnSameResult() throws Exception {
         var dto = new OrderDto("Стабильный заказ", new BigDecimal("7777.77"), null);
         String result = mockMvc.perform(post("/api/orders")
@@ -190,7 +190,7 @@ class OrderIdempotencyTest extends BaseIntegrationTest {
 
         String orderId = objectMapper.readTree(result).get("id").asText();
 
-        // Три последовательных GET — результат одинаков
+        // Три последовательных GET - результат одинаков
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(get("/api/orders/" + orderId))
                     .andExpect(status().isOk())

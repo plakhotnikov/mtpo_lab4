@@ -10,6 +10,9 @@ import java.util.Optional;
 /**
  * Сервис управления ключами идемпотентности.
  * Хранит ключи и кэшированные ответы в PostgreSQL.
+ *
+ * Единая точка интеграции для всех транспортов: HTTP-фильтр (REST, SOAP,
+ * GraphQL) и gRPC ServerInterceptor одинаково обращаются к этому бину.
  */
 @Service
 public class IdempotencyService {
@@ -22,18 +25,10 @@ public class IdempotencyService {
         this.repository = repository;
     }
 
-    /**
-     * Проверяет, существует ли ключ идемпотентности.
-     * Если да — возвращает кэшированный ответ.
-     */
     public Optional<IdempotencyKeyEntity> findByKey(String key) {
         return repository.findByIdempotencyKey(key);
     }
 
-    /**
-     * Регистрирует новый ключ идемпотентности (до обработки запроса).
-     * Используется для «захвата» ключа при concurrent запросах.
-     */
     @Transactional
     public IdempotencyKeyEntity registerKey(String key, String method, String path) {
         log.info("Регистрация ключа идемпотентности: {} {} {}", key, method, path);
@@ -41,16 +36,31 @@ public class IdempotencyService {
         return repository.save(entity);
     }
 
-    /**
-     * Сохраняет результат обработки запроса для повторного использования.
-     */
+    /** Сохранение текстового ответа (REST/SOAP/GraphQL). */
     @Transactional
-    public void saveResponse(String key, int status, String responseBody) {
+    public void saveTextResponse(String key, int status, String contentType, String responseBody) {
         repository.findByIdempotencyKey(key).ifPresent(entity -> {
             entity.setResponseStatus(status);
+            entity.setResponseContentType(contentType);
+            entity.setResponseKind(ResponseKind.TEXT);
             entity.setResponseBody(responseBody);
+            entity.setResponseBodyBytes(null);
             repository.save(entity);
-            log.info("Сохранён ответ для ключа {}: status={}", key, status);
+            log.info("Сохранён текстовый ответ для ключа {}: status={}, contentType={}", key, status, contentType);
+        });
+    }
+
+    /** Сохранение бинарного ответа (gRPC protobuf). */
+    @Transactional
+    public void saveBinaryResponse(String key, int status, String contentType, byte[] bytes) {
+        repository.findByIdempotencyKey(key).ifPresent(entity -> {
+            entity.setResponseStatus(status);
+            entity.setResponseContentType(contentType);
+            entity.setResponseKind(ResponseKind.BINARY);
+            entity.setResponseBody(null);
+            entity.setResponseBodyBytes(bytes);
+            repository.save(entity);
+            log.info("Сохранён бинарный ответ для ключа {}: status={}, {} байт", key, status, bytes != null ? bytes.length : 0);
         });
     }
 }

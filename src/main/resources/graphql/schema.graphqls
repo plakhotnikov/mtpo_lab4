@@ -1,0 +1,19 @@
+type Inventory {
+    id: ID!
+    itemName: String!
+    quantity: Int!
+}
+
+type Query {
+    inventories: [Inventory!]!
+    inventory(id: ID!): Inventory
+}
+
+type Mutation {
+    reserveInventory(input: ReserveInput!): Inventory!
+}
+
+input ReserveInput {
+    itemName: String!
+    quantity: Int!
+}

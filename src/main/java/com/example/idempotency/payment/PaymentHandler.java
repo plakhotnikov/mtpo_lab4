@@ -29,13 +29,13 @@ public class PaymentHandler {
         this.objectMapper = objectMapper;
     }
 
-    /** GET /api/payments — список всех платежей */
+    /** GET /api/payments - список всех платежей */
     public ServerResponse list(ServerRequest request) {
         var payments = paymentService.findAll();
         return ServerResponse.ok().body(payments);
     }
 
-    /** GET /api/payments/{id} — получить платёж по ID */
+    /** GET /api/payments/{id} - получить платёж по ID */
     public ServerResponse getById(ServerRequest request) {
         var id = UUID.fromString(request.pathVariable("id"));
         try {
@@ -46,7 +46,7 @@ public class PaymentHandler {
         }
     }
 
-    /** POST /api/payments — создать платёж (идемпотентность через IdempotencyFilter) */
+    /** POST /api/payments - создать платёж (идемпотентность через IdempotencyFilter) */
     public ServerResponse create(ServerRequest request) throws Exception {
         var dto = objectMapper.readValue(request.servletRequest().getInputStream(), PaymentDto.class);
         var payment = paymentService.create(dto);

@@ -877,3 +877,468 @@ public abstract class BaseIntegrationTest {
     }
 }
 \end{lstlisting}
+
+% ============================================================
+% Расширение под транспорт-агностичность: V4 + ResponseKind + обновлённые Entity/Service/Filter
+% ============================================================
+
+\subsection*{А.32. V4\_\_idempotency\_content\_meta.sql (расширение под произвольный Content-Type)}
+\begin{lstlisting}[caption={V4: расширение idempotency\_keys для SOAP/gRPC}, language=SQL]
+ALTER TABLE idempotency_keys
+    ADD COLUMN response_content_type VARCHAR(150),
+    ADD COLUMN response_kind         VARCHAR(16) NOT NULL DEFAULT 'TEXT',
+    ADD COLUMN response_body_bytes   BYTEA;
+\end{lstlisting}
+
+\subsection*{А.33. ResponseKind.java (дискриминатор тела)}
+\begin{lstlisting}[caption={Enum для различения текстового и бинарного снэпшота}]
+package com.example.idempotency.idempotency;
+
+public enum ResponseKind { TEXT, BINARY }
+\end{lstlisting}
+
+\subsection*{А.34. IdempotencyKeyEntity.java (обновлённая после V4)}
+\begin{lstlisting}[caption={JPA-сущность со снэпшотом ответа (extract)}]
+@Entity
+@Table(name = "idempotency_keys")
+public class IdempotencyKeyEntity {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "idempotency_key", nullable = false, unique = true)
+    private String idempotencyKey;
+
+    @Column(nullable = false, length = 10)  private String method;
+    @Column(nullable = false, length = 500) private String path;
+
+    @Column(name = "response_status")                                   private Integer responseStatus;
+    @Column(name = "response_body", columnDefinition = "TEXT")          private String responseBody;
+    @Column(name = "response_content_type", length = 150)               private String responseContentType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "response_kind", nullable = false, length = 16)
+    private ResponseKind responseKind = ResponseKind.TEXT;
+
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "response_body_bytes", columnDefinition = "BYTEA")
+    private byte[] responseBodyBytes;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+
+    // getters / setters опущены
+}
+\end{lstlisting}
+
+\subsection*{А.35. IdempotencyService.java (обновлённый с двумя save-методами)}
+\begin{lstlisting}[caption={Единая точка интеграции для всех транспортов}]
+@Service
+public class IdempotencyService {
+    private final IdempotencyKeyRepository repository;
+
+    public IdempotencyService(IdempotencyKeyRepository repository) {
+        this.repository = repository;
+    }
+
+    public Optional<IdempotencyKeyEntity> findByKey(String key) {
+        return repository.findByIdempotencyKey(key);
+    }
+
+    @Transactional
+    public IdempotencyKeyEntity registerKey(String key, String method, String path) {
+        return repository.save(new IdempotencyKeyEntity(key, method, path));
+    }
+
+    /** Сохранение текстового ответа (REST/SOAP/GraphQL). */
+    @Transactional
+    public void saveTextResponse(String key, int status, String contentType, String responseBody) {
+        repository.findByIdempotencyKey(key).ifPresent(entity -> {
+            entity.setResponseStatus(status);
+            entity.setResponseContentType(contentType);
+            entity.setResponseKind(ResponseKind.TEXT);
+            entity.setResponseBody(responseBody);
+            repository.save(entity);
+        });
+    }
+
+    /** Сохранение бинарного ответа (gRPC protobuf). */
+    @Transactional
+    public void saveBinaryResponse(String key, int status, String contentType, byte[] bytes) {
+        repository.findByIdempotencyKey(key).ifPresent(entity -> {
+            entity.setResponseStatus(status);
+            entity.setResponseContentType(contentType);
+            entity.setResponseKind(ResponseKind.BINARY);
+            entity.setResponseBodyBytes(bytes);
+            repository.save(entity);
+        });
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.36. IdempotencyFilter.java (обновлённый, транспорт-агностичный)}
+\begin{lstlisting}[caption={Фильтр сохраняет реальный Content-Type и пишет байты через OutputStream}]
+public class IdempotencyFilter extends OncePerRequestFilter {
+    public static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+    private static final String JSON_UTF8 = "application/json;charset=UTF-8";
+
+    private final IdempotencyService idempotencyService;
+    private final IdempotencyProperties properties;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+        if (!"POST".equalsIgnoreCase(request.getMethod()) || !properties.isEnabled()) {
+            chain.doFilter(request, response); return;
+        }
+        String key = request.getHeader(IDEMPOTENCY_KEY_HEADER);
+        if (key == null || key.isBlank()) {
+            writeError(response, HttpStatus.BAD_REQUEST,
+                    "{\"error\":\"Idempotency-Key header is required for POST requests\"}");
+            return;
+        }
+        var existing = idempotencyService.findByKey(key);
+        if (existing.isPresent()) {
+            var cached = existing.get();
+            if (cached.getResponseStatus() != null) { replay(response, cached); return; }
+            writeError(response, HttpStatus.CONFLICT,
+                    "{\"error\":\"Request with this key is already being processed\"}");
+            return;
+        }
+        try { idempotencyService.registerKey(key, request.getMethod(), request.getRequestURI()); }
+        catch (DataIntegrityViolationException e) {
+            writeError(response, HttpStatus.CONFLICT,
+                    "{\"error\":\"Request with this key is already being processed\"}");
+            return;
+        }
+        ContentCachingResponseWrapper wrapper = new ContentCachingResponseWrapper(response);
+        chain.doFilter(request, wrapper);
+        String contentType = resolveContentType(wrapper);
+        String body = new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+        idempotencyService.saveTextResponse(key, wrapper.getStatus(), contentType, body);
+        wrapper.copyBodyToResponse();
+    }
+
+    private static void replay(HttpServletResponse response, IdempotencyKeyEntity cached) throws IOException {
+        response.setStatus(cached.getResponseStatus());
+        String ct = cached.getResponseContentType() != null ? cached.getResponseContentType() : JSON_UTF8;
+        response.setContentType(ct);
+        byte[] bytes = (cached.getResponseKind() == ResponseKind.BINARY && cached.getResponseBodyBytes() != null)
+                ? cached.getResponseBodyBytes()
+                : (cached.getResponseBody() != null ? cached.getResponseBody().getBytes(StandardCharsets.UTF_8) : new byte[0]);
+        response.setContentLength(bytes.length);
+        response.getOutputStream().write(bytes);
+        response.getOutputStream().flush();
+    }
+
+    private static String resolveContentType(ContentCachingResponseWrapper w) {
+        String h = w.getHeader(HttpHeaders.CONTENT_TYPE);
+        if (h != null && !h.isBlank()) return h;
+        String ct = w.getContentType();
+        return (ct != null && !ct.isBlank()) ? ct : JSON_UTF8;
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.37. WebMvcConfig.java (URL-паттерны фильтра для всех четырёх HTTP-транспортов)}
+\begin{lstlisting}[caption={Единый бин IdempotencyFilter перехватывает 4 транспорта}]
+@Configuration
+@EnableConfigurationProperties(IdempotencyProperties.class)
+public class WebMvcConfig {
+    @Bean
+    public FilterRegistrationBean<IdempotencyFilter> idempotencyFilterRegistration(
+            IdempotencyService svc, IdempotencyProperties props) {
+        var reg = new FilterRegistrationBean<IdempotencyFilter>();
+        reg.setFilter(new IdempotencyFilter(svc, props));
+        reg.addUrlPatterns(
+                "/api/orders/*", "/api/orders",
+                "/api/payments/*", "/api/payments",
+                "/api/soap/*",
+                "/graphql");
+        reg.setOrder(1);
+        return reg;
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+% SOAP-транспорт
+% ============================================================
+
+\subsection*{А.38. V5\_\_shipments.sql + xsd/shipments.xsd (SOAP-домен)}
+\begin{lstlisting}[caption={V5 миграция и XSD контракт SOAP}, language=SQL]
+-- V5__shipments.sql
+CREATE TABLE shipments (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tracking_number VARCHAR(64) NOT NULL,
+    recipient       VARCHAR(255) NOT NULL,
+    status          VARCHAR(32) NOT NULL DEFAULT 'CREATED',
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_shipment_tracking_number UNIQUE (tracking_number)
+);
+\end{lstlisting}
+\begin{lstlisting}[caption={xsd/shipments.xsd}, language=XML]
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://example.com/idempotency/shipments"
+           targetNamespace="http://example.com/idempotency/shipments"
+           elementFormDefault="qualified">
+    <xs:element name="createShipmentRequest">
+        <xs:complexType><xs:sequence>
+            <xs:element name="trackingNumber" type="xs:string"/>
+            <xs:element name="recipient" type="xs:string"/>
+        </xs:sequence></xs:complexType>
+    </xs:element>
+    <xs:element name="createShipmentResponse">
+        <xs:complexType><xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+            <xs:element name="trackingNumber" type="xs:string"/>
+            <xs:element name="status" type="xs:string"/>
+        </xs:sequence></xs:complexType>
+    </xs:element>
+</xs:schema>
+\end{lstlisting}
+
+\subsection*{А.39. ShipmentEndpoint.java + WebServiceConfig.java}
+\begin{lstlisting}[caption={SOAP-эндпоинт и регистрация MessageDispatcherServlet}]
+@Endpoint
+public class ShipmentEndpoint {
+    public static final String NAMESPACE = "http://example.com/idempotency/shipments";
+    private final ShipmentService service;
+
+    @PayloadRoot(namespace = NAMESPACE, localPart = "createShipmentRequest")
+    @ResponsePayload
+    public DOMSource createShipment(@RequestPayload DOMSource request) throws Exception {
+        Element root = rootElement(request);
+        Shipment created = service.create(childText(root, "trackingNumber"),
+                                           childText(root, "recipient"));
+        Document doc = newDocument();
+        Element resp = doc.createElementNS(NAMESPACE, "createShipmentResponse");
+        doc.appendChild(resp);
+        appendChild(doc, resp, "id", created.getId().toString());
+        appendChild(doc, resp, "trackingNumber", created.getTrackingNumber());
+        appendChild(doc, resp, "status", created.getStatus());
+        return new DOMSource(doc);
+    }
+    // rootElement / childText / appendChild / newDocument опущены
+}
+
+@EnableWs @Configuration
+public class WebServiceConfig extends WsConfigurerAdapter {
+    @Bean
+    public ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(
+            ApplicationContext ctx) {
+        MessageDispatcherServlet servlet = new MessageDispatcherServlet();
+        servlet.setApplicationContext(ctx);
+        servlet.setTransformWsdlLocations(true);
+        return new ServletRegistrationBean<>(servlet, "/api/soap/*");
+    }
+    @Bean(name = "shipments")
+    public DefaultWsdl11Definition shipmentsWsdl(XsdSchema shipmentsSchema) {
+        DefaultWsdl11Definition wsdl = new DefaultWsdl11Definition();
+        wsdl.setPortTypeName("ShipmentsPort");
+        wsdl.setLocationUri("/api/soap");
+        wsdl.setTargetNamespace(ShipmentEndpoint.NAMESPACE);
+        wsdl.setSchema(shipmentsSchema);
+        return wsdl;
+    }
+    @Bean
+    public XsdSchema shipmentsSchema() {
+        return new SimpleXsdSchema(new ClassPathResource("xsd/shipments.xsd"));
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+% gRPC-транспорт
+% ============================================================
+
+\subsection*{А.40. notification.proto + V6\_\_notifications.sql}
+\begin{lstlisting}[caption={Контракт gRPC и таблица домена}, language={}]
+// src/main/proto/notification.proto
+syntax = "proto3";
+package com.example.idempotency.grpc.notification;
+option java_multiple_files = true;
+option java_package = "com.example.idempotency.grpc.notification.proto";
+
+service NotificationService {
+  rpc Send(SendRequest) returns (SendResponse);
+  rpc List(ListRequest) returns (ListResponse);
+}
+message SendRequest  { string recipient = 1; string message = 2; }
+message SendResponse { string id = 1; string status = 2; }
+message ListRequest  {}
+message ListResponse { repeated NotificationItem items = 1; }
+message NotificationItem {
+  string id = 1; string recipient = 2; string message = 3; string status = 4;
+}
+\end{lstlisting}
+\begin{lstlisting}[caption={V6\_\_notifications.sql}, language=SQL]
+CREATE TABLE notifications (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recipient     VARCHAR(255) NOT NULL,
+    message       TEXT NOT NULL,
+    message_hash  VARCHAR(64) NOT NULL,
+    status        VARCHAR(32) NOT NULL DEFAULT 'SENT',
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_notification_recipient_hash UNIQUE (recipient, message_hash)
+);
+\end{lstlisting}
+
+\subsection*{А.41. GrpcIdempotencyInterceptor.java (главная часть работы)}
+\begin{lstlisting}[caption={Transport-generic перехватчик: переиспользует IdempotencyService}]
+@GrpcGlobalServerInterceptor
+public class GrpcIdempotencyInterceptor implements ServerInterceptor {
+    private static final Metadata.Key<String> IDEMPOTENCY_KEY =
+            Metadata.Key.of("idempotency-key", Metadata.ASCII_STRING_MARSHALLER);
+    private static final String CONTENT_TYPE = "application/grpc+proto";
+
+    private final IdempotencyService idempotencyService;
+    private final IdempotencyProperties properties;
+
+    @Override
+    public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
+            ServerCall<ReqT, RespT> call, Metadata headers,
+            ServerCallHandler<ReqT, RespT> next) {
+
+        if (!properties.isEnabled()) return next.startCall(call, headers);
+
+        String key = headers.get(IDEMPOTENCY_KEY);
+        if (key == null || key.isBlank()) {
+            call.close(Status.INVALID_ARGUMENT.withDescription(
+                    "idempotency-key metadata is required"), new Metadata());
+            return noopListener();
+        }
+        var existing = idempotencyService.findByKey(key);
+        if (existing.isPresent()) {
+            IdempotencyKeyEntity cached = existing.get();
+            if (cached.getResponseStatus() != null && cached.getResponseBodyBytes() != null) {
+                try {
+                    RespT msg = call.getMethodDescriptor().getResponseMarshaller()
+                            .parse(new ByteArrayInputStream(cached.getResponseBodyBytes()));
+                    call.sendHeaders(new Metadata());
+                    call.sendMessage(msg);
+                    call.close(Status.OK, new Metadata());
+                } catch (Exception e) {
+                    call.close(Status.INTERNAL.withDescription("replay failed: " + e.getMessage()),
+                            new Metadata());
+                }
+                return noopListener();
+            }
+            call.close(Status.ABORTED, new Metadata());
+            return noopListener();
+        }
+        try { idempotencyService.registerKey(key, "GRPC", call.getMethodDescriptor().getFullMethodName()); }
+        catch (DataIntegrityViolationException e) {
+            call.close(Status.ALREADY_EXISTS, new Metadata());
+            return noopListener();
+        }
+        return next.startCall(new CachingServerCall<>(call, key), headers);
+    }
+
+    private static <ReqT> ServerCall.Listener<ReqT> noopListener() {
+        return new ServerCall.Listener<>() {};
+    }
+
+    private final class CachingServerCall<ReqT, RespT>
+            extends ForwardingServerCall.SimpleForwardingServerCall<ReqT, RespT> {
+        private final String key;
+        CachingServerCall(ServerCall<ReqT, RespT> delegate, String key) {
+            super(delegate); this.key = key;
+        }
+        @Override
+        public void sendMessage(RespT message) {
+            try {
+                byte[] bytes = getMethodDescriptor().getResponseMarshaller()
+                        .stream(message).readAllBytes();
+                idempotencyService.saveBinaryResponse(key,
+                        Status.OK.getCode().value(), CONTENT_TYPE, bytes);
+            } catch (IOException e) { /* log only */ }
+            super.sendMessage(message);
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection*{А.42. NotificationGrpcService.java}
+\begin{lstlisting}[caption={Реализация gRPC-сервиса (@GrpcService)}]
+@GrpcService
+public class NotificationGrpcService
+        extends NotificationServiceGrpc.NotificationServiceImplBase {
+    private final NotificationService service;
+    private final NotificationRepository repository;
+
+    @Override
+    public void send(SendRequest req, StreamObserver<SendResponse> observer) {
+        Notification n = service.send(req.getRecipient(), req.getMessage());
+        observer.onNext(SendResponse.newBuilder()
+                .setId(n.getId().toString()).setStatus(n.getStatus()).build());
+        observer.onCompleted();
+    }
+
+    @Override
+    public void list(ListRequest req, StreamObserver<ListResponse> observer) {
+        ListResponse.Builder b = ListResponse.newBuilder();
+        repository.findAll().forEach(n -> b.addItems(NotificationItem.newBuilder()
+                .setId(n.getId().toString()).setRecipient(n.getRecipient())
+                .setMessage(n.getMessage()).setStatus(n.getStatus()).build()));
+        observer.onNext(b.build());
+        observer.onCompleted();
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+% GraphQL-транспорт
+% ============================================================
+
+\subsection*{А.43. schema.graphqls + V7\_\_inventories.sql}
+\begin{lstlisting}[caption={GraphQL-схема (SDL) и таблица домена}, language={}]
+# src/main/resources/graphql/schema.graphqls
+type Inventory { id: ID!, itemName: String!, quantity: Int! }
+type Query { inventories: [Inventory!]!, inventory(id: ID!): Inventory }
+type Mutation { reserveInventory(input: ReserveInput!): Inventory! }
+input ReserveInput { itemName: String!, quantity: Int! }
+\end{lstlisting}
+\begin{lstlisting}[caption={V7\_\_inventories.sql}, language=SQL]
+CREATE TABLE inventories (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_name   VARCHAR(255) NOT NULL,
+    quantity    INTEGER NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_inventory_item_name UNIQUE (item_name)
+);
+\end{lstlisting}
+
+\subsection*{А.44. InventoryGraphqlController.java}
+\begin{lstlisting}[caption={GraphQL-контроллер с @QueryMapping / @MutationMapping}]
+@Controller
+public class InventoryGraphqlController {
+    private final InventoryRepository repository;
+
+    @QueryMapping
+    public List<Inventory> inventories() { return repository.findAll(); }
+
+    @QueryMapping
+    public Inventory inventory(@Argument String id) {
+        return repository.findById(UUID.fromString(id)).orElse(null);
+    }
+
+    @MutationMapping
+    @Transactional
+    public Inventory reserveInventory(@Argument ReserveInput input) {
+        return repository.save(new Inventory(input.itemName(), input.quantity()));
+    }
+
+    public record ReserveInput(String itemName, int quantity) {}
+}
+\end{lstlisting}
+
+\subsection*{А.45. V8\_\_drop\_new\_constraints.sql (профиль non-idempotent)}
+\begin{lstlisting}[caption={Дроп UNIQUE на трёх новых доменах --- демонстрация багов}, language=SQL]
+ALTER TABLE shipments     DROP CONSTRAINT IF EXISTS uk_shipment_tracking_number;
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS uk_notification_recipient_hash;
+ALTER TABLE inventories   DROP CONSTRAINT IF EXISTS uk_inventory_item_name;
+\end{lstlisting}

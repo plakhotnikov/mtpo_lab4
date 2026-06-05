@@ -5,3 +5,10 @@ app:
 spring:
   flyway:
     locations: classpath:db/migration,classpath:db/migration-non-idempotent
+    out-of-order: true
+    ignore-migration-patterns: "*:missing"
+
+grpc:
+  server:
+    port: -1
+    in-process-name: idempotency-test-non-idempotent

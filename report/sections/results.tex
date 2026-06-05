@@ -2,60 +2,78 @@
 
 \subsection{Описание разработанного программного обеспечения}
 
-Разработано Spring Boot приложение, реализующее REST API для трёх доменов:
+Разработано Spring Boot приложение, реализующее серверную часть для \textbf{шести доменов}, объединённых единым механизмом идемпотентности:
 \begin{itemize}
-    \item \textbf{Заказы} (\texttt{/api/orders}) --- управление заказами через аннотационный \texttt{@RestController};
-    \item \textbf{Платежи} (\texttt{/api/payments}) --- обработка платежей через функциональные эндпоинты (\texttt{RouterFunction});
-    \item \textbf{Товары} (\texttt{/api/products}) --- каталог товаров через автогенерируемые эндпоинты Spring Data REST.
+    \item \textbf{Заказы} (\texttt{/api/orders}) --- аннотационный \texttt{@RestController};
+    \item \textbf{Платежи} (\texttt{/api/payments}) --- функциональные эндпоинты (\texttt{RouterFunction});
+    \item \textbf{Товары} (\texttt{/api/products}) --- автогенерируемые эндпоинты Spring Data REST;
+    \item \textbf{Отправления} (\texttt{/api/soap/}) --- SOAP-эндпоинт на Spring-WS, контракт \texttt{xsd/shipments.xsd};
+    \item \textbf{Уведомления} (\texttt{localhost:9090}) --- gRPC-сервис, контракт \texttt{notification.proto};
+    \item \textbf{Инвентарь} (\texttt{/graphql}) --- GraphQL-контроллер, схема \texttt{schema.graphqls}.
 \end{itemize}
 
-\textbf{Стек технологий:} Spring Boot 3.3, Java 17, PostgreSQL 16, Flyway, Testcontainers, Docker Compose.
+\textbf{Стек технологий:} Spring Boot 3.3.6, Java 17, PostgreSQL 16, Flyway, Testcontainers, Docker Compose. Дополнительно: Spring-WS 4.0 + wsdl4j (SOAP), \texttt{grpc-spring-boot-starter 3.1} + grpc-java 1.65 + protobuf 3.25 (gRPC), \texttt{spring-boot-starter-graphql} (GraphQL).
 
 \subsubsection{Структура проекта}
 
 \begin{verbatim}
 src/main/java/com/example/idempotency/
-|-- config/         # Конфигурация (свойства, фильтры)
-|-- idempotency/    # Механизм идемпотентности
-|-- order/          # @RestController
-|-- payment/        # Functional Endpoints
-|-- product/        # Spring Data REST
-+-- exception/      # Обработка ошибок
+|-- config/                 # WebMvcConfig (URL-паттерны фильтра), IdempotencyProperties
+|-- idempotency/            # Filter, Service, Entity, Repository, ResponseKind
+|-- order/                  # @RestController + Service + Repository
+|-- payment/                # Functional: PaymentRouter + Handler
+|-- product/                # Spring Data REST: ProductRepository + EventHandler
+|-- soap/shipment/          # SOAP: ShipmentEndpoint + Service + WebServiceConfig
+|-- grpc/                   # GrpcIdempotencyInterceptor (общий для всех gRPC-сервисов)
+|   `-- notification/       # gRPC-домен: NotificationGrpcService + Service + Entity
+|-- graphql/inventory/      # GraphQL: InventoryGraphqlController + Service + Entity
++-- exception/              # Глобальный обработчик ошибок
+src/main/proto/notification.proto
+src/main/resources/
+|-- xsd/shipments.xsd
+|-- graphql/schema.graphqls
+|-- db/migration/                    # V1..V7
++-- db/migration-non-idempotent/     # V3, V8
 \end{verbatim}
 
 \subsubsection{Схема базы данных}
 
-База данных состоит из четырёх таблиц, управляемых через миграции Flyway:
+База данных состоит из \textbf{семи таблиц}, управляемых миграциями Flyway V1--V7 (плюс V8 в профиле non-idempotent):
 
 \begin{table}[H]
 \centering
 \caption{Схема базы данных}
 \label{tab:db-schema}
-\footnotesize
+\scriptsize
 \begin{tabularx}{\textwidth}{@{}l X l l@{}}
 \toprule
 \textbf{Таблица} & \textbf{Ключевые поля} & \textbf{Constraints} & \textbf{Назначение} \\
 \midrule
-orders & id (UUID PK), description, amount, status & UNIQUE(desc, amount) & Заказы \\
-payments & id (UUID PK), order\_id (FK), amount, status & FK $\to$ orders(id) & Платежи \\
-products & id (BIGSERIAL PK), sku, name, price, version & UNIQUE(sku) & Товары \\
-idempotency\_keys & id, key, method, path, response\_status, response\_body & UNIQUE(key) & Ключи \\
+orders            & id (UUID), description, amount, status                                                    & UNIQUE(desc, amount)            & REST/@RestController \\
+payments          & id (UUID), order\_id (FK), amount, status                                                  & FK $\to$ orders                 & REST/Functional \\
+products          & id (BIGSERIAL), sku, name, price, version                                                  & UNIQUE(sku)                     & Spring Data REST \\
+shipments         & id (UUID), tracking\_number, recipient, status                                             & UNIQUE(tracking\_number)        & SOAP \\
+notifications     & id (UUID), recipient, message, message\_hash, status                                       & UNIQUE(recipient, msg\_hash)    & gRPC \\
+inventories       & id (UUID), item\_name, quantity                                                            & UNIQUE(item\_name)              & GraphQL \\
+idempotency\_keys & id, key, method, path, response\_status, response\_body, response\_content\_type, response\_kind, response\_body\_bytes & UNIQUE(key) & Снэпшоты ответов (V4) \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Таблица \texttt{idempotency\_keys} содержит поле \texttt{expires\_at} для TTL ключей (по умолчанию 24 часа). Поле \texttt{response\_body} хранит сериализованный JSON-ответ для повторного использования.
+Расширение \texttt{idempotency\_keys} в миграции V4 (\S\,\ref{subsec:transport-agnostic-snapshot}) добавляет три колонки, без которых фильтр не мог бы корректно реплеить SOAP/XML и gRPC/protobuf. Поле \texttt{response\_kind} различает текстовое тело (\texttt{TEXT}, используется JSON/XML) и бинарное (\texttt{BINARY}, используется protobuf); \texttt{response\_content\_type} восстанавливает оригинальный MIME-тип на реплее. TTL ключей задаётся колонкой \texttt{expires\_at} (по умолчанию 24 часа).
 
 \subsubsection{Компоненты механизма идемпотентности}
 
-Механизм идемпотентности реализован через три компонента:
+Механизм идемпотентности реализован через четыре компонента, переиспользуемых четырьмя HTTP-транспортами и одним gRPC-перехватчиком:
 
 \begin{enumerate}
-    \item \textbf{IdempotencyFilter} --- HTTP-фильтр (наследник \mbox{\texttt{OncePerRequestFilter}}), перехватывающий POST-запросы к эндпоинтам заказов и платежей. Реализует алгоритм~\ref{alg:idempotency-check}. Может быть отключён через параметр \mbox{\texttt{app.idempotency.enabled=false}}.
+    \item \textbf{IdempotencyFilter} --- единственный HTTP-фильтр (наследник \mbox{\texttt{OncePerRequestFilter}}), зарегистрированный на URL-паттернах четырёх транспортов: \texttt{/api/orders/*}, \texttt{/api/payments/*}, \texttt{/api/soap/*}, \texttt{/graphql}. Реализует алгоритм~\ref{alg:idempotency-check}. Отключается параметром \mbox{\texttt{app.idempotency.enabled=false}}. После доработки V4 (\S\,\ref{subsec:transport-agnostic-snapshot}) транспорт-агностичен.
 
-    \item \textbf{IdempotencyService} --- сервис для работы с хранилищем ключей. Предоставляет методы \texttt{findByKey()}, \texttt{registerKey()} и \texttt{saveResponse()}. Операции выполняются в транзакциях для обеспечения атомарности.
+    \item \textbf{GrpcIdempotencyInterceptor} --- \texttt{@GrpcGlobalServerInterceptor}, делегирующий тому же \texttt{IdempotencyService}. Generic-реализация работает с любым unary-методом любого gRPC-сервиса через \texttt{MethodDescriptor.getResponseMarshaller()}.
 
-    \item \textbf{IdempotencyKeyEntity} --- JPA-сущность, представляющая запись в таблице \texttt{idempotency\_keys}. Содержит ключ, HTTP-метод, путь запроса, статус и тело кэшированного ответа, а также временные метки создания и истечения.
+    \item \textbf{IdempotencyService} --- единая точка интеграции для всех транспортов. Методы \texttt{findByKey()}, \texttt{registerKey()}, \texttt{saveTextResponse()} (для JSON/XML), \texttt{saveBinaryResponse()} (для protobuf-байтов). Операции транзакционны.
+
+    \item \textbf{IdempotencyKeyEntity} --- JPA-сущность, представляющая запись в таблице \texttt{idempotency\_keys}. Содержит ключ, HTTP-метод, путь запроса, снэпшот ответа ($\langle$status, contentType, kind, body$\rangle$) и временные метки.
 \end{enumerate}
 
 \subsubsection{Профили конфигурации}
@@ -65,30 +83,34 @@ idempotency\_keys & id, key, method, path, response\_status, response\_body & UN
 \begin{itemize}
     \item \textbf{Профиль по умолчанию}: идемпотентность включена (\mbox{\texttt{enabled=true}}), Flyway применяет миграции V1 и V2, все constraints активны.
 
-    \item \textbf{Профиль non-idempotent}: идемпотентность отключена (\mbox{\texttt{enabled=false}}), Flyway дополнительно применяет миграцию V3, которая удаляет UNIQUE constraints на таблицах \texttt{orders} и \texttt{products}.
+    \item \textbf{Профиль non-idempotent}: идемпотентность отключена (\mbox{\texttt{enabled=false}}), Flyway дополнительно применяет миграции V3 (дроп UNIQUE на \texttt{orders}, \texttt{products}) и V8 (дроп UNIQUE на \texttt{shipments}, \texttt{notifications}, \texttt{inventories}). gRPC-перехватчик так же проверяет флаг \texttt{enabled} и при выключенном режиме пропускает вызов без перехвата.
 \end{itemize}
 
-Переключение профилей позволяет запускать одни и те же тесты в двух конфигурациях и наглядно демонстрировать последствия отсутствия механизмов идемпотентности.
+Переключение профилей позволяет запускать одни и те же тесты в двух конфигурациях и наглядно демонстрировать последствия отсутствия механизмов идемпотентности на всех шести транспортах.
 
 \subsection{Результаты тестирования (профиль idempotent)}
 
-Основной набор из 22 интеграционных тестов проходит успешно:
+Полный набор из 36 интеграционных тестов проходит успешно:
 
 \begin{table}[H]
 \centering
-\caption{Результаты тестирования (профиль idempotent)}
+\caption{Результаты тестирования (объединённый прогон обоих профилей)}
 \label{tab:results-idempotent}
+\small
 \begin{tabular}{@{}lccl@{}}
 \toprule
-\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Результат} & \textbf{Тип контроллера} \\
+\textbf{Тестовый класс} & \textbf{Тестов} & \textbf{Результат} & \textbf{Тип контроллера / транспорт} \\
 \midrule
-OrderIdempotencyTest       & 6  & PASS & @RestController \\
-PaymentIdempotencyTest     & 5  & PASS & Functional Endpoints \\
-ProductIdempotencyTest     & 5  & PASS & Spring Data REST \\
+OrderIdempotencyTest       & 6  & PASS & @RestController (HTTP/JSON) \\
+PaymentIdempotencyTest     & 5  & PASS & Functional Endpoints (HTTP/JSON) \\
+ProductIdempotencyTest     & 5  & PASS & Spring Data REST (HTTP/HAL) \\
+SoapIdempotencyTest        & 3  & PASS & Spring-WS (SOAP/XML) \\
+GrpcIdempotencyTest        & 4  & PASS & @GrpcService (HTTP/2 + protobuf) \\
+GraphqlIdempotencyTest     & 4  & PASS & spring-boot-starter-graphql \\
 DataImportTest             & 2  & PASS & Импорт JSON/CSV \\
-NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
+NonIdempotentProfileTest   & 7  & PASS & Демонстрация багов на 6 транспортах \\
 \midrule
-\textbf{Итого}             & \textbf{22} & \textbf{PASS} & \\
+\textbf{Итого}             & \textbf{36} & \textbf{PASS} & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -133,30 +155,63 @@ NonIdempotentProfileTest   & 4  & PASS & Демонстрация багов \\
     \item \textbf{Импорт товаров из CSV} --- загрузка данных из файла \mbox{\texttt{products-input.csv}} через Jackson CSV, сохранение в БД, затем повторная попытка импорта: все 3 попытки отклоняются UNIQUE constraint, количество записей не увеличивается.
 \end{enumerate}
 
+\subsubsection{SOAP (SoapIdempotencyTest)}
+
+Тесты используют \texttt{TestRestTemplate} на random-порту (MockMvc маршрутизирует только в \texttt{DispatcherServlet} и не вызывает \texttt{MessageDispatcherServlet}), отправляя сырой SOAP-envelope в \texttt{/api/soap/}:
+\begin{enumerate}
+    \item \textbf{Один Idempotency-Key дважды} --- ответы байт-в-байт идентичны (включая Content-Type \texttt{text/xml}), в \texttt{shipments} ровно одна запись. Это подтверждает, что доработанный фильтр (\S\,\ref{subsec:transport-agnostic-snapshot}) корректно реплеит XML-тело.
+    \item \textbf{Разные ключи} --- две записи \texttt{shipments}.
+    \item \textbf{POST без Idempotency-Key} --- 400 Bad Request, ничего не создано.
+\end{enumerate}
+
+\subsubsection{gRPC (GrpcIdempotencyTest)}
+
+Тесты подключаются через \texttt{InProcessChannelBuilder} к in-process gRPC-серверу (\texttt{grpc.server.in-process-name=idempotency-test}); идемпотентный ключ передаётся в \texttt{Metadata}:
+\begin{enumerate}
+    \item \textbf{\texttt{Send} с одним ключом дважды} --- \texttt{SendResponse.id} совпадает, в \texttt{notifications} одна запись. Реплей происходит через десериализацию байтов из \texttt{response\_body\_bytes} тем же marshaller, что использовался при сериализации.
+    \item \textbf{Разные ключи} --- две записи \texttt{notifications}.
+    \item \textbf{Без \texttt{idempotency-key}} --- \texttt{Status.INVALID\_ARGUMENT}, ничего не создано.
+    \item \textbf{Бинарная идентичность реплея} --- \texttt{toByteArray()} обоих ответов совпадают побайтно. Это сильнее, чем равенство объектов: подтверждает, что сериализованная форма стабильна.
+\end{enumerate}
+
+\subsubsection{GraphQL (GraphqlIdempotencyTest)}
+
+Тесты используют \texttt{TestRestTemplate} на \texttt{/graphql}, отправляя GraphQL-запросы JSON-обёрткой:
+\begin{enumerate}
+    \item \textbf{Мутация с одним Idempotency-Key дважды} --- JSON-ответы идентичны, в \texttt{inventories} одна запись.
+    \item \textbf{Мутации с разными ключами} --- две записи.
+    \item \textbf{Мутация без ключа} --- 400 Bad Request.
+    \item \textbf{Query после мутации} --- запрос возвращает только что созданную запись, что демонстрирует совместимость GraphQL Query с механизмом идемпотентности (Query через POST требует ключ, но это не мешает выборке данных).
+\end{enumerate}
+
 \subsection{Результаты профиля non-idempotent}
 
-Профиль \texttt{non-idempotent} отключает механизмы идемпотентности:
+Профиль \texttt{non-idempotent} отключает механизмы идемпотентности на всех слоях:
 \begin{itemize}
-    \item IdempotencyFilter пропускает все POST-запросы без проверки заголовка;
-    \item Unique constraint на \texttt{orders(description, amount)} удалён миграцией V3;
-    \item Unique constraint на \texttt{products(sku)} удалён миграцией V3.
+    \item \texttt{IdempotencyFilter} пропускает все POST-запросы без проверки заголовка (\texttt{enabled=false});
+    \item \texttt{GrpcIdempotencyInterceptor} обходит логику регистрации ключа по тому же флагу;
+    \item Миграция V3 удаляет UNIQUE constraints на \texttt{orders} и \texttt{products};
+    \item Миграция V8 удаляет UNIQUE constraints на \texttt{shipments}, \texttt{notifications}, \texttt{inventories}.
 \end{itemize}
 
 \begin{table}[H]
 \centering
-\caption{Демонстрация проблем без идемпотентности (профиль non-idempotent)}
+\caption{Демонстрация проблем без идемпотентности (профиль non-idempotent, все 6 транспортов)}
 \label{tab:results-non-idempotent}
 \small
 \begin{tabularx}{\textwidth}{@{}X X c@{}}
 \toprule
 \textbf{Тест} & \textbf{Обнаруженная проблема} & \textbf{Статус} \\
 \midrule
-POST без Idempotency-Key & Запрос проходит без проверки --- любой POST создаёт ресурс & BUG \\
-Повторный POST с тем же ключом & Создаётся дубликат заказа --- ключ игнорируется & BUG \\
-POST с дубликатом SKU & Создаётся второй товар с тем же артикулом & BUG \\
-Retry платежа (3 раза) & 3 платежа вместо 1 --- тройное списание средств & BUG \\
+REST POST без Idempotency-Key       & Запрос проходит без проверки --- любой POST создаёт ресурс         & BUG \\
+REST повторный POST с тем же ключом & Создаётся дубликат заказа --- ключ игнорируется                    & BUG \\
+Data REST дубликат SKU              & Создаётся второй товар с тем же артикулом                          & BUG \\
+Functional retry платежа (3 раза)   & 3 платежа вместо 1 --- тройное списание средств                    & BUG \\
+SOAP createShipment с тем же tracking\_number & Создаются два Shipment c одинаковым номером                & BUG \\
+gRPC Send с тем же idempotency-key  & Interceptor выключен $\Rightarrow$ дубликат уведомления            & BUG \\
+GraphQL мутация с тем же ключом     & Фильтр выключен $\Rightarrow$ два Inventory с одним item\_name     & BUG \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Тесты \texttt{NonIdempotentProfileTest} проходят зелёными, подтверждая наличие проблем. Каждый тест использует прямые assertions: например, проверяется, что \mbox{\texttt{orderRepository.count() >= 2}} --- без фильтра действительно создаются дубликаты. Это демонстрирует критическое значение механизмов идемпотентности для корректного функционирования системы.
+Все семь тестов \texttt{NonIdempotentProfileTest} проходят зелёными, подтверждая наличие проблем во всех шести транспортах. Каждый тест использует прямые assertions: например, проверяется, что \mbox{\texttt{notificationRepository.count() == 2}} --- без перехватчика gRPC и без DB constraint действительно создаются дубликаты. Это демонстрирует критическое значение комбинации \emph{транспортного механизма} (фильтр/перехватчик) и \emph{domain-уровня} (UNIQUE constraint) для корректного функционирования системы независимо от выбранного протокола.

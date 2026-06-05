@@ -8,6 +8,8 @@ app:
 spring:
   flyway:
     locations: classpath:db/migration,classpath:db/migration-non-idempotent
+    out-of-order: true
+    ignore-migration-patterns: "*:missing"
   jpa:
     properties:
       hibernate:

@@ -208,6 +208,92 @@
       \verb https://spring.io/guides/gs/accessing-data-rest
       \endverb
     \endentry
+    \entry{spring-ws}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=48f029d1267de7768629e5c3289c443b}{%
+           family={{Spring Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \strng{bibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorbibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \field{extraname}{3}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring Web Services 4.0}
+      \field{title}{{Spring Web Services --- Reference Documentation}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.spring.io/spring-ws/docs/current/reference/html/
+      \endverb
+      \verb{url}
+      \verb https://docs.spring.io/spring-ws/docs/current/reference/html/
+      \endverb
+    \endentry
+    \entry{grpc-java}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=de3fbd50c6f07a9b941e98412409e02f}{%
+           family={{The gRPC Authors}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{fullhash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{fullhashraw}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{bibnamehash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{authorbibnamehash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{authornamehash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{authorfullhash}{de3fbd50c6f07a9b941e98412409e02f}
+      \strng{authorfullhashraw}{de3fbd50c6f07a9b941e98412409e02f}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Документация gRPC Java}
+      \field{title}{{gRPC Java --- Quick Start}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://grpc.io/docs/languages/java/quickstart/
+      \endverb
+      \verb{url}
+      \verb https://grpc.io/docs/languages/java/quickstart/
+      \endverb
+    \endentry
+    \entry{spring-graphql}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=48f029d1267de7768629e5c3289c443b}{%
+           family={{Spring Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{fullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \strng{bibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorbibnamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
+      \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
+      \field{extraname}{4}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Spring GraphQL 1.3}
+      \field{title}{{Spring for GraphQL --- Reference Documentation}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.spring.io/spring-graphql/reference/
+      \endverb
+      \verb{url}
+      \verb https://docs.spring.io/spring-graphql/reference/
+      \endverb
+    \endentry
     \entry{testcontainers}{misc}{}{}
       \name{author}{1}{}{%
         {{hash=d022b6aa96ba262689b887ae8f968ad4}{%
@@ -222,8 +308,8 @@
       \strng{authornamehash}{d022b6aa96ba262689b887ae8f968ad4}
       \strng{authorfullhash}{d022b6aa96ba262689b887ae8f968ad4}
       \strng{authorfullhashraw}{d022b6aa96ba262689b887ae8f968ad4}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{note}{Официальная документация}
@@ -235,6 +321,38 @@
       \verb{url}
       \verb https://testcontainers.com/
       \endverb
+    \endentry
+    \entry{lang2002algebra}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=abb50aa6b4dac78307182a4b8c05743e}{%
+           family={Lang},
+           familyi={L\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{fullhash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{fullhashraw}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{bibnamehash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{authorbibnamehash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{authornamehash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{authorfullhash}{abb50aa6b4dac78307182a4b8c05743e}
+      \strng{authorfullhashraw}{abb50aa6b4dac78307182a4b8c05743e}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3}
+      \field{internalsortvolume}{211}
+      \field{isbn}{978-0387953854}
+      \field{series}{Graduate Texts in Mathematics}
+      \field{title}{{Algebra}}
+      \field{year}{2002}
+      \field{volume}{211}
+      \range{volume}{1}
     \endentry
     \entry{ietf-idempotency-key}{misc}{}{}
       \name{author}{2}{}{%
@@ -299,6 +417,92 @@
       \field{title}{{Patterns of Enterprise Application Architecture}}
       \field{year}{2002}
     \endentry
+    \entry{protobuf3}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=8b36e9207c24c76e6719268e49201d94}{%
+           family={{Google}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{fullhash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{fullhashraw}{8b36e9207c24c76e6719268e49201d94}
+      \strng{bibnamehash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{authorbibnamehash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{authornamehash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{authorfullhash}{8b36e9207c24c76e6719268e49201d94}
+      \strng{authorfullhashraw}{8b36e9207c24c76e6719268e49201d94}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Документация Protocol Buffers}
+      \field{title}{{Protocol Buffers Language Guide (proto3)}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://protobuf.dev/programming-guides/proto3/
+      \endverb
+      \verb{url}
+      \verb https://protobuf.dev/programming-guides/proto3/
+      \endverb
+    \endentry
+    \entry{grpc-spring-boot}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=3214f9487d07db5ea11795e7d6ea416d}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{fullhash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{fullhashraw}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{bibnamehash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{authorbibnamehash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{authornamehash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{authorfullhash}{3214f9487d07db5ea11795e7d6ea416d}
+      \strng{authorfullhashraw}{3214f9487d07db5ea11795e7d6ea416d}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Стартер net.devh для интеграции gRPC и Spring Boot}
+      \field{title}{{grpc-spring-boot-starter}}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://github.com/yidongnan/grpc-spring-boot-starter
+      \endverb
+      \verb{url}
+      \verb https://github.com/yidongnan/grpc-spring-boot-starter
+      \endverb
+    \endentry
+    \entry{graphql-spec}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=f1c9b8a1db233f245c9e6aee46073c54}{%
+           family={{GraphQL Foundation}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{fullhash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{fullhashraw}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{bibnamehash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{authorbibnamehash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{authornamehash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{authorfullhash}{f1c9b8a1db233f245c9e6aee46073c54}
+      \strng{authorfullhashraw}{f1c9b8a1db233f245c9e6aee46073c54}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{GraphQL Working Group}
+      \field{title}{{GraphQL Specification (October 2021)}}
+      \field{year}{2021}
+      \verb{urlraw}
+      \verb https://spec.graphql.org/October2021/
+      \endverb
+      \verb{url}
+      \verb https://spec.graphql.org/October2021/
+      \endverb
+    \endentry
     \entry{beck2002test}{book}{}{}
       \name{author}{1}{}{%
         {{hash=cbec72b463c8b189fdc89c789b018733}{%
@@ -318,8 +522,8 @@
       \strng{authornamehash}{cbec72b463c8b189fdc89c789b018733}
       \strng{authorfullhash}{cbec72b463c8b189fdc89c789b018733}
       \strng{authorfullhashraw}{cbec72b463c8b189fdc89c789b018733}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{978-0321146533}
@@ -340,9 +544,9 @@
       \strng{authornamehash}{48f029d1267de7768629e5c3289c443b}
       \strng{authorfullhash}{48f029d1267de7768629e5c3289c443b}
       \strng{authorfullhashraw}{48f029d1267de7768629e5c3289c443b}
-      \field{extraname}{3}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{extraname}{5}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{note}{Spring Boot Reference Documentation}
@@ -384,8 +588,8 @@
       \strng{authornamehash}{26a98f19033a095202c69683343a78d1}
       \strng{authorfullhash}{26a98f19033a095202c69683343a78d1}
       \strng{authorfullhashraw}{26a98f19033a095202c69683343a78d1}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{978-1449358068}
@@ -411,8 +615,8 @@
       \strng{authornamehash}{a3a7a610c60a10426d79a474eb90561a}
       \strng{authorfullhash}{a3a7a610c60a10426d79a474eb90561a}
       \strng{authorfullhashraw}{a3a7a610c60a10426d79a474eb90561a}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{978-1449373320}
